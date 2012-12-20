@@ -56,18 +56,25 @@ bool clapi::doOpenCL() {
 
   //1.デバイスの取得
   cout <<"num_platforms : "<<num_platforms<<endl;
-  const int tmp = num_platforms;
-  cl_device_id *device_list = new cl_device_id[tmp];
-  num_device = 0; 
-  for(int i = 0;i < num_platforms;i++)
-  {
-  status = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 4, &device_list[i], &ndt);
-  num_device = ndt + num_device ;
-  if (status != CL_SUCCESS || num_device <= 0) {
-    fprintf(stdout, "clGetDeviceIDs failed.\n");
-    printf("%d\n", status);
-    return false;
-  }}
+  const int tmp = num_platforms;//2
+  
+  cl_device_id *device_list= new cl_device_id[10];
+ // device_list[0] = new cl_device_id[4];//CPUのリスト
+ // device_list[1] = new cl_device_id[4];//GPUのリスト
+ 
+  num_device = 0;
+
+    for(int i = 0;i < num_platforms;i++)
+    {
+      status = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 4, &device_list[i], &ndt);
+      num_device = ndt + num_device ;
+     // device_list++;
+      if (status != CL_SUCCESS || num_device <= 0) {
+        fprintf(stdout, "clGetDeviceIDs failed.\n");
+        printf("%d\n", status);
+        return false;
+      }
+    }
 
   ////////////////////
   cl_char buff[1024];
@@ -76,146 +83,164 @@ bool clapi::doOpenCL() {
     cout<< "Device Name = "<<buff<<endl;
   }
   ////////////////
- 
-    context = clCreateContext(properties, sizeof(device_list)/sizeof(device_list[0]), device_list, NULL,NULL, &status);
-    //context = clCreateContext(properties, sizeof(device_list), device_list, NULL,NULL, &status);
-    if (status != CL_SUCCESS) {
-      cout << "clCreateContext failed\nError Code: " << status << endl;
-      return false;
-    }
 
-   // cl_char buff[1024];
-    cl_device_id *getinfo = new cl_device_id[num_device];
-    clGetContextInfo(context, CL_CONTEXT_DEVICES, sizeof(cl_device_id)*num_device, getinfo, NULL);  
-    for(int i = 0; i < num_device ;i++){
-      //clGetContextInfo(context, CL_CONTEXT_DEVICES, sizeof(cl_device_id), getinfo, NULL);
-      cout <<i<<endl;
-      clGetDeviceInfo(getinfo[i], CL_DEVICE_NAME, sizeof(buff), buff, NULL);
-      cout << "Device Name = "<<buff <<endl;
-    }
+  context = clCreateContext(properties, sizeof(device_list)/sizeof(device_list[0]), device_list, NULL,NULL, &status);
+  //context = clCreateContext(properties, sizeof(device_list), device_list, NULL,NULL, &status);
+  if (status != CL_SUCCESS) {
+    cout << "clCreateContext failed\nError Code: " << status << endl;
+    return false;
+  }
 
-    //3.コマンドキューの作成
-   // queue = clCreateCommandQueue(context, *device_list, 0, &status);
+  // cl_char buff[1024];
+  cout << "num_device : "<< num_device<<endl;
+  cl_device_id *getinfo = new cl_device_id[num_device];
 
-    queue = clCreateCommandQueue(context, device_list[0], 0, &status);
-    queue2 = clCreateCommandQueue(context, device_list[1], 0, &status);
-    queue3 = clCreateCommandQueue(context, device_list[2], 0, &status);
-    
-    
-    if (status != CL_SUCCESS) {
-      cout << "clCreateCommandQueue failed\nError Code: " << status << endl;
-      return false;
-    }
-
-    //4.プログラムオブジェクトの作成
-    FILE *fp;
-    size_t source_size;
-    char *source_str;
-
-    fp = fopen(filename.c_str(), "r");
-    if (!fp) {
-      fprintf(stderr, "Failed to leas kernel.\n");
-      return false;
-    }
-    source_str = (char *) malloc(MAX_SOURCE_SIZE);
-    source_size = fread(source_str, 1, MAX_SOURCE_SIZE, fp);
-    fclose(fp);
-
-    program = clCreateProgramWithSource(context, 1, (const char**) &(source_str), &source_size, &status);
-    if (status != CL_SUCCESS) {
-      cout << "clCreateProgramWithSource failed\nError Code: " << status << endl;
-      return false;
-    }
-
-    cout <<"num_device : "<<num_device<<endl;
-    //5.プログラムのビルド
-    status = clBuildProgram(program, num_device, device_list, NULL, NULL, NULL);
-    if (status != CL_SUCCESS) {
-      cout << "clBuildProgram failed \nError Code: "<< status << endl;
-      //      builderr();
-      return false;
-    }
-    cout<<"build end"<<endl;
+  
+  cout << "new getinfo"<<endl;
+  for(int i= 0;i< num_device;i++ ){
+    cout << getinfo[i] << endl;
+  }
+  status = clGetContextInfo(context, CL_CONTEXT_DEVICES, sizeof(getinfo), getinfo, NULL);
 
 
-    //6.カーネルの作成
-    kernel = clCreateKernel(program, "calc", &status);
-    if (status != CL_SUCCESS) {
-      cout << "clCreateKernel failed\nError Code: " << status << endl;
-      return false;
-    }
+  cout << "status : "<<status <<endl;
+  cout << "num_device of context: "<< num_device << endl;
+
+  for(int i= 0;i< num_device;i++ ){
+    //cout <<"getinfo"<< i<<getinfo[i] << endl;
+  }
+
+  cl_char buff1[1024];
+  for(int i = 0; i < num_device-1 ;i++){
+    cout <<"device "<<i<<endl;
+    status = clGetDeviceInfo(getinfo[i], CL_DEVICE_NAME, sizeof(buff1),buff1, NULL);
+
+    cout << " : Device Name = "<<buff1 << " status: "<<status<<endl;
+  }
+  cout << "suru-" << endl;
+
+  //3.コマンドキューの作成
+  // queue = clCreateCommandQueue(context, *device_list, 0, &status);
+
+  queue = clCreateCommandQueue(context, device_list[0], 0, &status);
+  queue2 = clCreateCommandQueue(context, device_list[1], 0, &status);
+  queue3 = clCreateCommandQueue(context, device_list[2], 0, &status);
 
 
-    //7メモリオブジェクトの作成
-    for(int i = 0 ; i<num_hikisu ; i++)
-    {
-      memIn[i] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(double)*size[i], (void*) s[i], &status);
-      if (status != CL_SUCCESS) {
-        cout << "clCreateBuffer failed\nError Code: " << status << endl;
-        return false;
-      }
+  if (status != CL_SUCCESS) {
+    cout << "clCreateCommandQueue failed\nError Code: " << status << endl;
+    return false;
+  }
+
+  //4.プログラムオブジェクトの作成
+  FILE *fp;
+  size_t source_size;
+  char *source_str;
+
+  fp = fopen(filename.c_str(), "r");
+  if (!fp) {
+    fprintf(stderr, "Failed to leas kernel.\n");
+    return false;
+  }
+  source_str = (char *) malloc(MAX_SOURCE_SIZE);
+  source_size = fread(source_str, 1, MAX_SOURCE_SIZE, fp);
+  fclose(fp);
+
+  program = clCreateProgramWithSource(context, 1, (const char**) &(source_str), &source_size, &status);
+  if (status != CL_SUCCESS) {
+    cout << "clCreateProgramWithSource failed\nError Code: " << status << endl;
+    return false;
+  }
+
+  cout <<"num_device : "<<num_device<<endl;
+  //5.プログラムのビルド
+  status = clBuildProgram(program, num_device, device_list, NULL, NULL, NULL);
+  if (status != CL_SUCCESS) {
+    cout << "clBuildProgram failed \nError Code: "<< status << endl;
+    //      builderr();
+    return false;
+  }
+  cout<<"build end"<<endl;
 
 
-    }
-    memOut = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(double)*size[1] , NULL, &status);
+  //6.カーネルの作成
+  kernel = clCreateKernel(program, "calc", &status);
+  if (status != CL_SUCCESS) {
+    cout << "clCreateKernel failed\nError Code: " << status << endl;
+    return false;
+  }
+
+
+  //7メモリオブジェクトの作成
+  for(int i = 0 ; i<num_hikisu ; i++)
+  {
+    memIn[i] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(double)*size[i], (void*) s[i], &status);
     if (status != CL_SUCCESS) {
       cout << "clCreateBuffer failed\nError Code: " << status << endl;
       return false;
     }
 
 
-    //8.カーネルに渡す引数の設定
-    status = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *) &memOut);
+  }
+  memOut = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(double)*size[1] , NULL, &status);
+  if (status != CL_SUCCESS) {
+    cout << "clCreateBuffer failed\nError Code: " << status << endl;
+    return false;
+  }
+
+
+  //8.カーネルに渡す引数の設定
+  status = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *) &memOut);
+  if (status != CL_SUCCESS) {
+    cout << "clSetKernelArg failed\nError Code: " << status << endl;
+    return false;
+  }
+
+
+  for(int i = 0; i< num_hikisu; i++)
+  {
+    status = clSetKernelArg(kernel,i,sizeof(cl_mem),(void *) &memIn[i]);
     if (status != CL_SUCCESS) {
       cout << "clSetKernelArg failed\nError Code: " << status << endl;
       return false;
     }
+  }
 
-
-    for(int i = 0; i< num_hikisu; i++)
-    {
-      status = clSetKernelArg(kernel,i,sizeof(cl_mem),(void *) &memIn[i]);
-      if (status != CL_SUCCESS) {
-        cout << "clSetKernelArg failed\nError Code: " << status << endl;
-        return false;
-      }
-    }
-
-    //9.カーネルの実行
-    cout <<"zikou"<<endl;
-    size_t globalsize[] = { size[0] };
-    status = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, globalsize, NULL, 0, NULL, NULL);
-
-    
-    
-
-
-    status = clEnqueueNDRangeKernel(queue2, kernel, 1, NULL, globalsize, NULL, 0, NULL, NULL);
-    
-    
-    status = clEnqueueNDRangeKernel(queue3, kernel, 1, NULL, globalsize, NULL, 0, NULL, NULL);
+  //9.カーネルの実行
+  cout <<"zikou"<<endl;
+  size_t globalsize[] = { size[0] };
+  status = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, globalsize, NULL, 0, NULL, NULL);
 
 
 
-    if (status != CL_SUCCESS) {
-      cout << "clEnqueueNDRangeKernel failed\nError Code: " << status << endl;
-      return false;
-    }
 
-    //10.結果の取得
-    Out = (double*) malloc(size[0] * sizeof(double));
-    
-    //ここも書きなおすべき
-    status = clEnqueueReadBuffer(queue, memOut, CL_TRUE, 0, sizeof(double)*size[1], Out, 0, NULL, NULL);
-    
-    
-    
-    if (status != CL_SUCCESS) {
-      cout << "clEnqueueReadBuffer failed\nError Code: " << status << endl;
-      return false;
-    }
 
-    return true;
+  status = clEnqueueNDRangeKernel(queue2, kernel, 1, NULL, globalsize, NULL, 0, NULL, NULL);
+
+
+  status = clEnqueueNDRangeKernel(queue3, kernel, 1, NULL, globalsize, NULL, 0, NULL, NULL);
+
+
+
+  if (status != CL_SUCCESS) {
+    cout << "clEnqueueNDRangeKernel failed\nError Code: " << status << endl;
+    return false;
+  }
+
+  //10.結果の取得
+  Out = (double*) malloc(size[0] * sizeof(double));
+
+  //ここも書きなおすべき
+  status = clEnqueueReadBuffer(queue, memOut, CL_TRUE, 0, sizeof(double)*size[1], Out, 0, NULL, NULL);
+
+
+
+  if (status != CL_SUCCESS) {
+    cout << "clEnqueueReadBuffer failed\nError Code: " << status << endl;
+    return false;
+  }
+
+  return true;
 }
 
 
