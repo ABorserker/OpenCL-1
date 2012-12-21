@@ -45,18 +45,19 @@ bool clapi::clauto(int n, ...) {
 
 
 bool clapi::doOpenCL() {
-  status = clGetPlatformIDs(2, platforms, &num_platforms);
+  status = clGetPlatformIDs(4, platforms, &num_platforms);
   if (status != CL_SUCCESS || num_platforms <= 0) {
     fprintf(stdout, "clGetPlatformIDs failed.\n");
     printf("%d\n", status);
     return false;
   }
   // 最初の要素として返されたプラットフォームIDを、プロパティにセットする
-  cl_context_properties properties[] ={CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[0], CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[1], 0};
-
+  for(int i = 0;i < num_platforms ;i++){
+  cl_context_properties properties[i][] ={CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[i], 0};
+  }
   //1.デバイスの取得
   cout <<"num_platforms : "<<num_platforms<<endl;
-  const int tmp = num_platforms;//2
+  const int tmp = num_platforms;
   
   cl_device_id *device_list= new cl_device_id[10];
  // device_list[0] = new cl_device_id[4];//CPUのリスト
@@ -83,25 +84,24 @@ bool clapi::doOpenCL() {
     cout<< "Device Name = "<<buff<<endl;
   }
   ////////////////
-
-  context = clCreateContext(properties, sizeof(device_list)/sizeof(device_list[0]), device_list, NULL,NULL, &status);
-  //context = clCreateContext(properties, sizeof(device_list), device_list, NULL,NULL, &status);
+for(int i = 0 ;i < num_platforms; i++){
+  context = clCreateContext(properties[i], sizeof(device_list)/sizeof(device_list[0]), device_list, NULL,NULL, &status);
+  
   if (status != CL_SUCCESS) {
     cout << "clCreateContext failed\nError Code: " << status << endl;
     return false;
   }
+}
 
   // cl_char buff[1024];
   cout << "num_device : "<< num_device<<endl;
   cl_device_id *getinfo = new cl_device_id[num_device];
 
-  
   cout << "new getinfo"<<endl;
   for(int i= 0;i< num_device;i++ ){
     cout << getinfo[i] << endl;
   }
   status = clGetContextInfo(context, CL_CONTEXT_DEVICES, sizeof(getinfo), getinfo, NULL);
-
 
   cout << "status : "<<status <<endl;
   cout << "num_device of context: "<< num_device << endl;
