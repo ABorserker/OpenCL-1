@@ -52,46 +52,53 @@ bool clapi::doOpenCL() {
     return false;
   }
   // 最初の要素として返されたプラットフォームIDを、プロパティにセットする
+  cl_context_properties properties[num_platforms*2];
   for(int i = 0;i < num_platforms ;i++){
-  cl_context_properties properties[i][] ={CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[i], 0};
+    properties[i*2] = CL_CONTEXT_PLATFORM;
+    properties[i*2+1] = (cl_context_properties)platforms[i];
   }
+  properties[num_platforms*2-1] = 0;
+
   //1.デバイスの取得
   cout <<"num_platforms : "<<num_platforms<<endl;
   const int tmp = num_platforms;
   
   cl_device_id *device_list= new cl_device_id[10];
- // device_list[0] = new cl_device_id[4];//CPUのリスト
- // device_list[1] = new cl_device_id[4];//GPUのリスト
+  cl_device_id *device_listcpu = new cl_device_id[4];//CPUのリスト
+  cl_device_id *device_listgpu = new cl_device_id[4];//GPUのリスト
  
   num_device = 0;
-
-    for(int i = 0;i < num_platforms;i++)
+  ndt = 0;
+    for(int j = 0;j < num_platforms;j++)
     {
-      status = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 4, &device_list[i], &ndt);
+      status = clGetDeviceIDs(platforms[j], CL_DEVICE_TYPE_ALL, 4, &device_list[num_device], &ndt);
       num_device = ndt + num_device ;
-     // device_list++;
       if (status != CL_SUCCESS || num_device <= 0) {
         fprintf(stdout, "clGetDeviceIDs failed.\n");
         printf("%d\n", status);
         return false;
       }
     }
+status = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_ALL, 4, device_listcpu, NULL);
+status = clGetDeviceIDs(platforms[1], CL_DEVICE_TYPE_ALL, 4, device_listgpu, NULL);
+
 
   ////////////////////
   cl_char buff[1024];
-  for(int i=0;i<num_device;i++){
-    clGetDeviceInfo(device_list[i],CL_DEVICE_NAME,sizeof(buff),buff,NULL);
+  for(int j=0;j<num_device;j++){
+    clGetDeviceInfo(device_list[j],CL_DEVICE_NAME,sizeof(buff),buff,NULL);
     cout<< "Device Name = "<<buff<<endl;
   }
   ////////////////
-for(int i = 0 ;i < num_platforms; i++){
-  context = clCreateContext(properties[i], sizeof(device_list)/sizeof(device_list[0]), device_list, NULL,NULL, &status);
+//for(int j = 0 ;j < num_platforms; j++){
+  
+  context = clCreateContext(properties, sizeof(device_list)/sizeof(device_list[0]), device_list, NULL,NULL, &status);
   
   if (status != CL_SUCCESS) {
     cout << "clCreateContext failed\nError Code: " << status << endl;
     return false;
   }
-}
+//}
 
   // cl_char buff[1024];
   cout << "num_device : "<< num_device<<endl;
@@ -112,8 +119,8 @@ for(int i = 0 ;i < num_platforms; i++){
 
   cl_char buff1[1024];
   for(int i = 0; i < num_device-1 ;i++){
-    cout <<"device "<<i<<endl;
-    status = clGetDeviceInfo(getinfo[i], CL_DEVICE_NAME, sizeof(buff1),buff1, NULL);
+    cout <<"device "<<i;
+    //status = clGetDeviceInfo(getinfo[i], CL_DEVICE_NAME, sizeof(buff1),buff1, NULL);
 
     cout << " : Device Name = "<<buff1 << " status: "<<status<<endl;
   }
@@ -121,11 +128,11 @@ for(int i = 0 ;i < num_platforms; i++){
 
   //3.コマンドキューの作成
   // queue = clCreateCommandQueue(context, *device_list, 0, &status);
-
-  queue = clCreateCommandQueue(context, device_list[0], 0, &status);
-  queue2 = clCreateCommandQueue(context, device_list[1], 0, &status);
-  queue3 = clCreateCommandQueue(context, device_list[2], 0, &status);
-
+for(int i=0; i < num_device;i++){
+  queue = clCreateCommandQueue(context, device_list[i], 0, &status);
+  //queue2 = clCreateCommandQueue(context, device_list[1], 0, &status);
+  //queue3 = clCreateCommandQueue(context, device_list[2], 0, &status);
+}
 
   if (status != CL_SUCCESS) {
     cout << "clCreateCommandQueue failed\nError Code: " << status << endl;
