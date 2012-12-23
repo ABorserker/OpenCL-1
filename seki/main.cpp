@@ -209,9 +209,9 @@ int main()
 
   status = clSetKernelArg(kernel1, 0, sizeof(cl_mem), (void *)&memIn1);
   cout << status << endl;
-  status = clSetKernelArg(kernel2, 0, sizeof(cl_mem), (void *)&memIn2);
+  status = clSetKernelArg(kernel2, 1, sizeof(cl_mem), (void *)&memIn2);
   cout << status << endl;
-  status = clSetKernelArg(kernel3, 0, sizeof(cl_mem), (void *)&memOut);
+  status = clSetKernelArg(kernel3, 2, sizeof(cl_mem), (void *)&memOut);
   cout << status << endl;
 
 

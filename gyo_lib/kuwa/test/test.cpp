@@ -67,5 +67,63 @@ int main()
       count++;
     }
   }
-}
 
+  int i, j, k;
+  float a[3*3] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  float b[3*3] = {9, 8, 7, 6, 5, 4, 3, 2, 1};
+  float c[3*3];
+
+  static const char *source[] =
+  {
+    "#pragma OPENCL EXTENSION cl_khr_fp64:enable\n\
+      __kernel void\n\
+      calc(__global float *a,\n\
+          __global float *b,\n\
+          __global float *c)\n\
+      {\n\
+        int index = get_global_id(0);\n\
+          c[index] = (float)index;\n\
+      }\n"
+  };
+
+  cl_program program[num_platforms];
+  cl_kernel kernel[num_platforms];
+  for(int i =0,count = 0; i < num_platforms; i++)
+  {
+  program[i] = clCreateProgramWithSource(context[i], 1, (const char**)&source, NULL, &status);
+  cout<< status<<endl;
+
+  status = clBuildProgram(program[i], num_devices[i], &device_list[count],NULL,NULL,NULL);
+  count += num_devices[i];
+ 
+  cout << status<< endl;
+  
+  kernel[i] = clCreateKernel(program[i], "calc", &status);
+  }
+  
+  cl_mem mem[totaldev];
+  for(int i =0,count1=0,count2=0,count =0;i<num_platforms;i++)
+  {
+    for(int j = 0;j<3;j++){
+      mem[count1] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*3*3, NULL, &status);
+      cout<<"create mem"<<count1<<" : "<<status<<endl;
+      count1++;
+    }
+    
+    for(int j =0;j<num_devices[i];j++){
+      status = clEnqueueWriteBuffer(queue[count], mem[i*3], CL_TRUE, 0, sizeof(float)*3*3, a, 0,NULL,NULL);
+       cout << "commandQueue"<<count<<" mem"<<i*3<<" write : "<<status <<endl; 
+      status = clEnqueueWriteBuffer(queue[count], mem[i*3+1], CL_TRUE, 0, sizeof(float)*3*3, b, 0,NULL,NULL);
+
+      cout << "commandQueue"<<count<<" mem"<<i*3+1<<" write : "<<status <<endl;
+count++;
+    }
+
+    for(int j=0;j<2;j++){
+    status = clSetKernelArg(kernel[i], j, sizeof(cl_mem), (void *)mem[count2]);
+    cout <<"kernel"<<i<<" mem"<<count2<<" set : "<<status<<endl;
+   count2++;
+    }
+  }
+
+}
