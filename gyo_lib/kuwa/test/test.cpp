@@ -81,7 +81,7 @@ int main()
           __global float *c)\n\
       {\n\
         int index = get_global_id(0);\n\
-          *c = (float)index;\n\
+        c[index] = a[index] + b[index];\n\
       }\n"
   };
 
@@ -90,12 +90,12 @@ int main()
   for(int i =0,count = 0; i < num_platforms; i++)
   {
   program[i] = clCreateProgramWithSource(context[i], 1, (const char**)&source, NULL, &status);
-  cout<< status<<endl;
+  cout<< "CreateProgram : "<<status<<endl;
 
   status = clBuildProgram(program[i], num_devices[i], &device_list[count],NULL,NULL,NULL);
   count += num_devices[i];
  
-  cout << status<< endl;
+  cout << "Build : "<<status<< endl;
   
   kernel[i] = clCreateKernel(program[i], "calc", &status);
   }
