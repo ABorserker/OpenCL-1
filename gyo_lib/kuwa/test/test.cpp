@@ -208,18 +208,19 @@ int main()
   status = clSetKernelArg(kernel[1], 2, sizeof(cl_mem), (void *)&mem[5]);
   cout <<"kernel mem set : "<<status<<endl;
 
-  size_t globalsize = 100;
-  status = clEnqueueNDRangeKernel(queue[0], kernel[0], 1, NULL, &globalsize, NULL, 0, NULL, NULL);
+ 
+  size_t globalsize[] = {1};
+  status = clEnqueueNDRangeKernel(queue[0], kernel[0], 1, NULL, globalsize, NULL, 0, NULL, NULL);
   cout << "kernel done : " <<status << endl;
-  status = clEnqueueNDRangeKernel(queue[1], kernel[1], 1, NULL, &globalsize, NULL, 0, NULL, NULL);
+  status = clEnqueueNDRangeKernel(queue[4], kernel[1], 1, NULL, globalsize, NULL, 0, NULL, NULL);
   cout << "kernel done : " <<status << endl;
-  status = clEnqueueNDRangeKernel(queue[1], kernel[1], 1, NULL, &globalsize, NULL, 0, NULL, NULL);
+  status = clEnqueueNDRangeKernel(queue[2], kernel[1], 1, NULL, globalsize, NULL, 0, NULL, NULL);
   cout << "kernel done : " <<status << endl;
-  status = clEnqueueNDRangeKernel(queue[1], kernel[1], 1, NULL, &globalsize, NULL, 0, NULL, NULL);
+  status = clEnqueueNDRangeKernel(queue[3], kernel[1], 1, NULL, globalsize, NULL, 0, NULL, NULL);
   cout << "kernel done : " <<status << endl;
-  status = clEnqueueNDRangeKernel(queue[1], kernel[1], 1, NULL, &globalsize, NULL, 0, NULL, NULL);
-  cout << "kernel done : " <<status << endl;
-
+  status = clEnqueueNDRangeKernel(queue[1], kernel[1], 1, NULL, globalsize, NULL, 0, NULL, NULL);
+  cout << "kernel done : " <<status << endl; 
+  
   status = clEnqueueReadBuffer(queue[0], mem[2], CL_TRUE, 0, sizeof(float)*delta, c, 0, NULL, NULL);
   cout << "result : "<<status<<" >> ";
   for(int i = 0; i<9;i++)
