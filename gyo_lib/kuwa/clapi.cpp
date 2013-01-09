@@ -128,11 +128,11 @@ status = clGetDeviceIDs(platforms[1], CL_DEVICE_TYPE_ALL, 4, device_listgpu, NUL
 
   //3.コマンドキューの作成
   // queue = clCreateCommandQueue(context, *device_list, 0, &status);
-for(int i=0; i < num_device;i++){
-  queue = clCreateCommandQueue(context, device_list[i], 0, &status);
-  //queue2 = clCreateCommandQueue(context, device_list[1], 0, &status);
-  //queue3 = clCreateCommandQueue(context, device_list[2], 0, &status);
-}
+//for(int i=0; i < num_device;i++){
+  queue = clCreateCommandQueue(context, device_list[0], 0, &status);
+  queue2 = clCreateCommandQueue(context, device_list[1], 0, &status);
+  queue3 = clCreateCommandQueue(context, device_list[2], 0, &status);
+//}
 
   if (status != CL_SUCCESS) {
     cout << "clCreateCommandQueue failed\nError Code: " << status << endl;
