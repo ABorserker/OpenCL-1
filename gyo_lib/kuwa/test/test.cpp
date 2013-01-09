@@ -113,7 +113,6 @@ int main()
   };
 
   cl_program program[num_platforms];
-  cl_kernel kernel[num_platforms];
   for(int i =0,count = 0; i < num_platforms; i++)
   {
     program[i] = clCreateProgramWithSource(context[i], 1, (const char**)&source, NULL, &status);
@@ -123,10 +122,17 @@ int main()
     count += num_devices[i];
 
     cout << "Build : "<<status<< endl;
-
-    kernel[i] = clCreateKernel(program[i], "calc", &status);
   }
 
+  cl_kernel kernel[totaldev];
+  int count3 = 0;
+  for(int i = 0 ; i < num_platforms;i++){
+    for(int j = 0;j < num_devices[i];j++){
+      kernel[count3] = clCreateKernel(program[i], "calc", &status);
+      count3++;
+      cout << "create Kernel : "<< status<<endl;
+    }
+  }
   /*  cl_mem mem[num_platforms*3];
       for(int i =0,count1=0,count2=0,count =0;i<num_platforms;i++)
       {
@@ -207,20 +213,38 @@ int main()
   cout <<"kernel mem set : "<<status<<endl;
   status = clSetKernelArg(kernel[1], 2, sizeof(cl_mem), (void *)&mem[5]);
   cout <<"kernel mem set : "<<status<<endl;
+status = clSetKernelArg(kernel[2], 0, sizeof(cl_mem), (void *)&mem[3]);
+  cout <<"kernel mem set : "<<status<<endl;
+  status = clSetKernelArg(kernel[2], 1, sizeof(cl_mem), (void *)&mem[4]);
+  cout <<"kernel mem set : "<<status<<endl;
+  status = clSetKernelArg(kernel[2], 2, sizeof(cl_mem), (void *)&mem[5]);
+  cout <<"kernel mem set : "<<status<<endl;
+status = clSetKernelArg(kernel[3], 0, sizeof(cl_mem), (void *)&mem[3]);
+  cout <<"kernel mem set : "<<status<<endl;
+  status = clSetKernelArg(kernel[3], 1, sizeof(cl_mem), (void *)&mem[4]);
+  cout <<"kernel mem set : "<<status<<endl;
+  status = clSetKernelArg(kernel[3], 2, sizeof(cl_mem), (void *)&mem[5]);
+  cout <<"kernel mem set : "<<status<<endl;
+status = clSetKernelArg(kernel[4], 0, sizeof(cl_mem), (void *)&mem[3]);
+  cout <<"kernel mem set : "<<status<<endl;
+  status = clSetKernelArg(kernel[4], 1, sizeof(cl_mem), (void *)&mem[4]);
+  cout <<"kernel mem set : "<<status<<endl;
+  status = clSetKernelArg(kernel[4], 2, sizeof(cl_mem), (void *)&mem[5]);
+  cout <<"kernel mem set : "<<status<<endl;
 
- 
+
   size_t globalsize[] = {1};
   status = clEnqueueNDRangeKernel(queue[0], kernel[0], 1, NULL, globalsize, NULL, 0, NULL, NULL);
   cout << "kernel done : " <<status << endl;
-  status = clEnqueueNDRangeKernel(queue[4], kernel[1], 1, NULL, globalsize, NULL, 0, NULL, NULL);
-  cout << "kernel done : " <<status << endl;
-  status = clEnqueueNDRangeKernel(queue[2], kernel[1], 1, NULL, globalsize, NULL, 0, NULL, NULL);
-  cout << "kernel done : " <<status << endl;
-  status = clEnqueueNDRangeKernel(queue[3], kernel[1], 1, NULL, globalsize, NULL, 0, NULL, NULL);
-  cout << "kernel done : " <<status << endl;
   status = clEnqueueNDRangeKernel(queue[1], kernel[1], 1, NULL, globalsize, NULL, 0, NULL, NULL);
+  cout << "kernel done : " <<status << endl;
+  status = clEnqueueNDRangeKernel(queue[2], kernel[2], 1, NULL, globalsize, NULL, 0, NULL, NULL);
+  cout << "kernel done : " <<status << endl;
+  status = clEnqueueNDRangeKernel(queue[3], kernel[3], 1, NULL, globalsize, NULL, 0, NULL, NULL);
+  cout << "kernel done : " <<status << endl;
+  status = clEnqueueNDRangeKernel(queue[4], kernel[4], 1, NULL, globalsize, NULL, 0, NULL, NULL);
   cout << "kernel done : " <<status << endl; 
-  
+
   status = clEnqueueReadBuffer(queue[0], mem[2], CL_TRUE, 0, sizeof(float)*delta, c, 0, NULL, NULL);
   cout << "result : "<<status<<" >> ";
   for(int i = 0; i<9;i++)
