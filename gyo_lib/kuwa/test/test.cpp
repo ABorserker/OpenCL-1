@@ -6,7 +6,7 @@
 #include<CL/cl.h>
 #endif
 
-#define SIZE 10
+#define SIZE 1000
 using namespace std;
 
 int main()
@@ -80,7 +80,6 @@ int main()
       a[y * SIZE + x] = 1;
       b[y * SIZE + x] = 2;
       c[y * SIZE + x] = 0;
-      d[y * SIZE + x] = 0;
     }
   }  
 
@@ -96,14 +95,9 @@ int main()
     cout<<"a["<<y<<"] address"<<a_[y]<<" "<<*a_[y]<<endl;
   }
 
-for(int i=0;i<20;i++){
-cout<<a_[i]<<" ";
-}
-cout<<endl;
-
   static const char *source[] =
   {
-    "#define SIZE 10\n\
+    "#define SIZE 1000\n\
 #pragma OPENCL EXTENSION cl_khr_fp64:enable\n\
       __kernel void\n\
       calc(__global float *a,\n\
@@ -123,7 +117,7 @@ cout<<endl;
   cl_program program[num_platforms];
   for(int i =0,count = 0; i < num_platforms;i++)
   {
-    
+
     program[i] = clCreateProgramWithSource(context[i], 1, (const char**)&source, NULL, &status);
     cout<< "CreateProgram["<<i<<"] : "<<status<<endl;
 
@@ -141,146 +135,55 @@ cout<<endl;
       count3++;
     }
   }
-  /*  cl_mem mem[num_platforms*3];
-      for(int i =0,count1=0,count2=0,count =0;i<num_platforms;i++)
-      {
-      for(int j = 0;j<3;j++){
-      mem[count1] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*3*3, NULL, &status);
-      cout<<"create mem"<<count1<<" : "<<status<<endl;
-      count1++;
-      }
 
-      for(int j =0;j<num_devices[i];j++){
-      status = clEnqueueWriteBuffer(queue[count], mem[i*3], CL_TRUE, 0, sizeof(float)*3*3, a, 0,NULL,NULL);
-      cout << "commandQueue"<<count<<" mem"<<i*3<<" write : "<<status <<endl; 
-      status = clEnqueueWriteBuffer(queue[count], mem[i*3+1], CL_TRUE, 0, sizeof(float)*3*3, b, 0,NULL,NULL);
+  cl_mem mem[totaldev*3];
+  int count4 = 0;
+  for(int i =0;i<num_platforms;i++){
+    for(int j = 0;j<num_devices[i];j++){
+      mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
+      cout<<"context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
+      mem[count4+1] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*SIZE*SIZE, NULL, &status);
+      cout<<"context["<<i<<"] "<<"create mem["<<count4+1<<"] : "<<status<<endl; 
+      mem[count4+2] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
+      cout<<"context["<<i<<"] "<<"create mem["<<count4+2<<"] : "<<status<<endl;  
+      count4+=3;
+    }
+  }
 
-      cout << "commandQueue"<<count<<" mem"<<i*3+1<<" write : "<<status <<endl;
-      count++;
-      }
+  count4=0;
+  for(int i = 0;i<totaldev;i++,count4+=3){
+    status = clEnqueueWriteBuffer(queue[i], mem[count4], CL_TRUE, 0, sizeof(float)*delta, a_[i], 0,NULL,NULL);
+    cout << "commandQueue["<<i<<"]<=mem["<<count4<<"] : "<< status <<endl; 
+    status = clEnqueueWriteBuffer(queue[i], mem[count4+1], CL_TRUE, 0, sizeof(float)*SIZE*SIZE, b, 0,NULL,NULL);
+    cout << "commandQueue["<<i<<"]<=mem["<<count4+1<<"] : "<< status <<endl;  
+    status = clEnqueueWriteBuffer(queue[i], mem[count4+2], CL_TRUE, 0, sizeof(float)*delta, c, 0,NULL,NULL);
+    cout << "commandQueue["<<i<<"]<=mem["<<count4+2<<"] : "<< status <<endl; 
+  }
 
-      for(int j=0;j<2;j++){
-      status = clSetKernelArg(kernel[i], j, sizeof(cl_mem), (void *)mem[count2]);
-      cout <<"kernel"<<i<<" mem"<<count2<<" set : "<<status<<endl;
-      count2++;
-      }
-      }
-      */
-
-  /*cl_mem work[2];//totaldev, rest
-    work[0] = clCreateBuffer(context[0], CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(int)*(int)totaldev, *totaldev, &status);
-    cout<<"create mem : "<<status<<endl;
-    work[1] = clCreateBuffer(context[0], CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(int)*rest, *rest, &status);
-    cout<<"create mem : "<<status<<endl;
-    */
-  cl_mem mem[num_platforms*3];
-  mem[0] = clCreateBuffer(context[0], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
-  cout<<"create mem : "<<status<<endl;
-  mem[1] = clCreateBuffer(context[0], CL_MEM_READ_WRITE, sizeof(float)*SIZE*SIZE, NULL, &status);
-  cout<<"create mem : "<<status<<endl;
-  mem[2] = clCreateBuffer(context[0], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
-  cout<<"create mem : "<<status<<endl;
-  mem[3] = clCreateBuffer(context[1], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
-  cout<<"create mem : "<<status<<endl;
-  mem[4] = clCreateBuffer(context[1], CL_MEM_READ_WRITE, sizeof(float)*SIZE*SIZE, NULL, &status);
-  cout<<"create mem : "<<status<<endl;
-  mem[5] = clCreateBuffer(context[1], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
-  cout<<"create mem : "<<status<<endl;
-
-  status = clEnqueueWriteBuffer(queue[0], mem[0], CL_TRUE, 0, sizeof(float)*delta, a_[0], 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl; 
-  status = clEnqueueWriteBuffer(queue[0], mem[1], CL_TRUE, 0, sizeof(float)*SIZE*SIZE, b, 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl;     
-  status = clEnqueueWriteBuffer(queue[0], mem[2], CL_TRUE, 0, sizeof(float)*delta, c, 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl; 
-  status = clEnqueueWriteBuffer(queue[1], mem[3], CL_TRUE, 0, sizeof(float)*delta, a_[1], 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl; 
-  status = clEnqueueWriteBuffer(queue[1], mem[4], CL_TRUE, 0, sizeof(float)*SIZE*SIZE, b, 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl; 
-  status = clEnqueueWriteBuffer(queue[1], mem[5], CL_TRUE, 0, sizeof(float)*delta, c, 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl; 
-  status = clEnqueueWriteBuffer(queue[2], mem[3], CL_TRUE, 0, sizeof(float)*delta, a_[2], 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl; 
-  status = clEnqueueWriteBuffer(queue[2], mem[4], CL_TRUE, 0, sizeof(float)*SIZE*SIZE, b, 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl;
-  status = clEnqueueWriteBuffer(queue[1], mem[5], CL_TRUE, 0, sizeof(float)*delta, c, 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl; 
-  status = clEnqueueWriteBuffer(queue[3], mem[3], CL_TRUE, 0, sizeof(float)*delta, a_[3], 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl; 
-  status = clEnqueueWriteBuffer(queue[3], mem[4], CL_TRUE, 0, sizeof(float)*SIZE*SIZE, b, 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl; 
-  status = clEnqueueWriteBuffer(queue[1], mem[5], CL_TRUE, 0, sizeof(float)*delta, c, 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl; 
-  status = clEnqueueWriteBuffer(queue[4], mem[3], CL_TRUE, 0, sizeof(float)*delta, a_[4], 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl;
-  status = clEnqueueWriteBuffer(queue[4], mem[4], CL_TRUE, 0, sizeof(float)*SIZE*SIZE, b, 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl;
-  status = clEnqueueWriteBuffer(queue[1], mem[5], CL_TRUE, 0, sizeof(float)*delta, c, 0,NULL,NULL);
-  cout << "commandQueue : "<< status <<endl; 
-
-  status = clSetKernelArg(kernel[0], 0, sizeof(cl_mem), (void *)&mem[0]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[0], 1, sizeof(cl_mem), (void *)&mem[1]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[0], 2, sizeof(cl_mem), (void *)&mem[2]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[1], 0, sizeof(cl_mem), (void *)&mem[3]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[1], 1, sizeof(cl_mem), (void *)&mem[4]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[1], 2, sizeof(cl_mem), (void *)&mem[5]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[2], 0, sizeof(cl_mem), (void *)&mem[3]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[2], 1, sizeof(cl_mem), (void *)&mem[4]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[2], 2, sizeof(cl_mem), (void *)&mem[5]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[3], 0, sizeof(cl_mem), (void *)&mem[3]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[3], 1, sizeof(cl_mem), (void *)&mem[4]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[3], 2, sizeof(cl_mem), (void *)&mem[5]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[4], 0, sizeof(cl_mem), (void *)&mem[3]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[4], 1, sizeof(cl_mem), (void *)&mem[4]);
-  cout <<"kernel mem set : "<<status<<endl;
-  status = clSetKernelArg(kernel[4], 2, sizeof(cl_mem), (void *)&mem[5]);
-  cout <<"kernel mem set : "<<status<<endl;
-
+  count4=0;
+  for(int i = 0;i<totaldev;i++){
+    for(int j = 0;j<3;j++){
+      status = clSetKernelArg(kernel[i], j, sizeof(cl_mem), (void *)&mem[i*3+j]);
+      cout <<"kernel["<<i<<"] mem["<<i*3+j<<"] set : "<<status<<endl;
+    }
+  }
 
   size_t globalsize[] = {1};
-  status = clEnqueueNDRangeKernel(queue[0], kernel[0], 1, NULL, globalsize, NULL, 0, NULL, NULL);
-  cout << "kernel done : " <<status << endl;
-  status = clEnqueueNDRangeKernel(queue[1], kernel[1], 1, NULL, globalsize, NULL, 0, NULL, NULL);
-  cout << "kernel done : " <<status << endl;
-  status = clEnqueueNDRangeKernel(queue[2], kernel[2], 1, NULL, globalsize, NULL, 0, NULL, NULL);
-  cout << "kernel done : " <<status << endl;
-  status = clEnqueueNDRangeKernel(queue[3], kernel[3], 1, NULL, globalsize, NULL, 0, NULL, NULL);
-  cout << "kernel done : " <<status << endl;
-  status = clEnqueueNDRangeKernel(queue[4], kernel[4], 1, NULL, globalsize, NULL, 0, NULL, NULL);
-  cout << "kernel done : " <<status << endl; 
+  for(int i =0; i<totaldev;i++){
+    status = clEnqueueNDRangeKernel(queue[i], kernel[i], 1, NULL, globalsize, NULL, 0, NULL, NULL);
+    cout << "kernel done : " <<status << endl;
+  }
 
-  status = clEnqueueReadBuffer(queue[0], mem[2], CL_TRUE, 0, sizeof(float)*delta, c, 0, NULL, NULL);
-  cout << "result : "<<status<<" >> "<<endl;
-  for(int i = 0; i<SIZE/5;i++)
-  {
-    for(int j = 0;j<SIZE;j++){
-      cout << c[i*SIZE+j] << " ";
+  for(int i=0;i<totaldev;i++){
+    status = clEnqueueReadBuffer(queue[i], mem[3*i+2], CL_TRUE, 0, sizeof(float)*delta, c, 0, NULL, NULL);
+    cout << "result : "<<status<<" >> "<<endl;
+    for(int j = 0; j<SIZE/totaldev;j++)
+    {
+      for(int k = 0;k<SIZE;k++){
+        cout << c[j*SIZE+k] << " ";
+      }
+      cout << endl;
     }
     cout << endl;
   }
-  cout << endl;
-
-  status = clEnqueueReadBuffer(queue[1], mem[5], CL_TRUE, 0, sizeof(float)*delta, d, 0, NULL, NULL);
-  cout << "result : "<<status<<" >> "<<endl;
-  for(int i = 0; i<SIZE/5;i++)
-  {
-    for(int j=0; j<SIZE;j++){
-      cout << d[i*SIZE+j] << " ";
-    }
-    cout<<endl;
-  }
-  cout << endl;
 }
