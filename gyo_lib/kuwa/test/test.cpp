@@ -2,6 +2,7 @@
 #include<string>
 #include<fstream>
 #include<time.h>
+#include<sys/time.h>
 
 #ifdef __APPLE__
 #include<OpenCL/opencl.h>
@@ -9,13 +10,20 @@
 #include<CL/cl.h>
 #endif
 
-#define SIZE 1000
+#define SIZE 10000
 using namespace std;
+
+double gettimeofday_sec()
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return tv.tv_sec + tv.tv_usec * 1e-6;
+}
 
 int main()
 {
-  clock_t t1, t2, t3, t4, t5, t6;
-  t1 = clock();
+  double t1, t2, t3, t4, t5, t6;
+  t1 = gettimeofday_sec();
 
   cl_platform_id *platforms;
   cl_uint num_platforms;
@@ -274,13 +282,15 @@ int main()
     }
   }
 
-  t3 = clock();
+  t3 = gettimeofday_sec();
   size_t globalsize[] = {1,1000,1000,100,1024};
   for(int i =0; i<totaldev;i++){
     status = clEnqueueNDRangeKernel(queue[i], kernel[i], 1, NULL, globalsize, NULL, 0, NULL, NULL);
     cout << "kernel done : " <<status << endl;
   }
 
+
+  /*
   for(int i=0;i<totaldev;i++){
     if(3*i+2 != totaldev*3-1 || rest == 0){
       status = clEnqueueReadBuffer(queue[i], mem[3*i+2], CL_TRUE, 0, sizeof(float)*delta, c, 0, NULL, NULL);
@@ -307,8 +317,9 @@ int main()
       cout << endl;
     }
   }
+*/
 
-  t4 = clock();
+  t4 = gettimeofday_sec();
 
   delete a, b, c;
 
@@ -332,7 +343,7 @@ int main()
     clReleaseContext(context[i]);
   }
 
-  t2 = clock();
-  cout <<"calc time = "<<(double)(t4 - t3) / CLOCKS_PER_SEC <<" sec."<< endl;
-  cout <<"total time = "<<(double)(t2 -t1) / CLOCKS_PER_SEC <<" sec."<< endl;
+  t2 = gettimeofday_sec();
+  cout <<"calc time = "<<t4 - t3<<" sec."<< endl;
+  cout <<"total time = "<<t2 -t1<<" sec."<< endl;
 }
