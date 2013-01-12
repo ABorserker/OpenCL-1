@@ -9,7 +9,7 @@
 #include<CL/cl.h>
 #endif
 
-#define SIZE 6
+#define SIZE 1000
 using namespace std;
 
 int main()
@@ -84,7 +84,7 @@ int main()
   for(y = 0;y < SIZE;y++){
     for(x = 0;x < SIZE ;x++){
       a[y * SIZE + x] = 3;
-      b[y * SIZE + x] = 8;
+      b[y * SIZE + x] = 9;
       c[y * SIZE + x] = 0;
     }
   }
@@ -128,12 +128,16 @@ int main()
   string str, new_str="", new_str_last="";
   const char *source1, *source_last;
   bool flag=true;
-  char tmp[10];
+  char tmp[10],size[20];
 
   //ソースコード書き換え
   ifstream ifs("before.cl");
   while(ifs && getline(ifs, str)){
     cout << str <<endl;
+    if(str.find("#define SIZE")!=string::npos){
+      sprintf(size,"#define SIZE %d",SIZE);
+      str.replace(str.find("#define SIZE"), 12, size);
+    }
     if(str.find("for")!=string::npos && flag){
       if(str.find("SIZE")!=string::npos){
         sprintf(tmp,"SIZE/%d",totaldev);
@@ -148,14 +152,15 @@ int main()
   source1 = new_str.c_str();
   cout<< new_str <<endl;
 
-
-cout<< "oooooooooooooooooo"<<endl;
-
   //最後のデバイスのソースコード書き換え
   ifstream ifs_last("before.cl");
   flag = true;
   while(ifs_last && getline(ifs_last, str)){
     cout << str <<endl;
+    if(str.find("#define SIZE")!=string::npos){
+      sprintf(size,"#define SIZE %d",SIZE);
+      str.replace(str.find("#define SIZE"), 12, size);
+    }
     if(str.find("for")!=string::npos && flag){
       if(str.find("SIZE")!=string::npos){
         sprintf(tmp,"%d",SIZE/totaldev+(SIZE%totaldev));
@@ -191,7 +196,7 @@ cout<< "oooooooooooooooooo"<<endl;
       count += num_devices[i];
       count--;
       cout << "Program["<<i<<"]Build : "<<status<< endl;
- 
+
       program[i+1] = clCreateProgramWithSource(context[i], 1, (const char**)&source_last, NULL, &status);
       cout<< "last CreateProgram["<<i+1<<"] : "<<status<<endl;
       status = clBuildProgram(program[i+1], 1, &device_list[count],NULL,NULL,NULL);
@@ -221,18 +226,18 @@ cout<< "oooooooooooooooooo"<<endl;
   for(int i =0;i<num_platforms;i++){
     for(int j = 0;j<num_devices[i];j++){
       if(count4+2 != totaldev*3-1 || rest == 0){
-      mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
-      cout<<"context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
-      mem[count4+1] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
-      cout<<"context["<<i<<"] "<<"create mem["<<count4+1<<"] : "<<status<<endl; 
+        mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
+        cout<<"context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
+        mem[count4+1] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
+        cout<<"context["<<i<<"] "<<"create mem["<<count4+1<<"] : "<<status<<endl; 
         mem[count4+2] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
         cout<<"context["<<i<<"] "<<"create mem["<<count4+2<<"] : "<<status<<endl;
       }
       else if(count4+2 == totaldev*3-1 && rest != 0){
-       mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*rest, NULL, &status);
-      cout<<"context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
-      mem[count4+1] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*rest, NULL, &status);
-      cout<<"context["<<i<<"] "<<"create mem["<<count4+1<<"] : "<<status<<endl; 
+        mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*rest, NULL, &status);
+        cout<<"context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
+        mem[count4+1] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*rest, NULL, &status);
+        cout<<"context["<<i<<"] "<<"create mem["<<count4+1<<"] : "<<status<<endl; 
         mem[count4+2] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*rest, NULL, &status);
         cout<<"context["<<i<<"] "<<"create mem["<<count4+2<<"] : "<<status<<endl;
       }
@@ -243,18 +248,18 @@ cout<< "oooooooooooooooooo"<<endl;
   count4=0;
   for(int i = 0;i<totaldev;i++,count4+=3){
     if(count4+2 != totaldev*3-1 || rest == 0){
-    status = clEnqueueWriteBuffer(queue[i], mem[count4], CL_TRUE, 0, sizeof(float)*delta, a_[i], 0,NULL,NULL);
-    cout << "commandQueue["<<i<<"]<=mem["<<count4<<"] : "<< status <<endl; 
-    status = clEnqueueWriteBuffer(queue[i], mem[count4+1], CL_TRUE, 0, sizeof(float)*delta, b_[i], 0,NULL,NULL);
-    cout << "commandQueue["<<i<<"]<=mem["<<count4+1<<"] : "<< status <<endl;  
+      status = clEnqueueWriteBuffer(queue[i], mem[count4], CL_TRUE, 0, sizeof(float)*delta, a_[i], 0,NULL,NULL);
+      cout << "commandQueue["<<i<<"]<=mem["<<count4<<"] : "<< status <<endl; 
+      status = clEnqueueWriteBuffer(queue[i], mem[count4+1], CL_TRUE, 0, sizeof(float)*delta, b_[i], 0,NULL,NULL);
+      cout << "commandQueue["<<i<<"]<=mem["<<count4+1<<"] : "<< status <<endl;  
       status = clEnqueueWriteBuffer(queue[i], mem[count4+2], CL_TRUE, 0, sizeof(float)*delta, c, 0,NULL,NULL);
       cout << "commandQueue["<<i<<"]<=mem["<<count4+2<<"] : "<< status <<endl; 
     }
     else if(count4+2 == totaldev*3-1 && rest != 0){
-     status = clEnqueueWriteBuffer(queue[i], mem[count4], CL_TRUE, 0, sizeof(float)*rest, a_[i], 0,NULL,NULL);
-    cout << "commandQueue["<<i<<"]<=mem["<<count4<<"] : "<< status <<endl; 
-    status = clEnqueueWriteBuffer(queue[i], mem[count4+1], CL_TRUE, 0, sizeof(float)*rest, b_[i], 0,NULL,NULL);
-    cout << "commandQueue["<<i<<"]<=mem["<<count4+1<<"] : "<< status <<endl;  
+      status = clEnqueueWriteBuffer(queue[i], mem[count4], CL_TRUE, 0, sizeof(float)*rest, a_[i], 0,NULL,NULL);
+      cout << "commandQueue["<<i<<"]<=mem["<<count4<<"] : "<< status <<endl; 
+      status = clEnqueueWriteBuffer(queue[i], mem[count4+1], CL_TRUE, 0, sizeof(float)*rest, b_[i], 0,NULL,NULL);
+      cout << "commandQueue["<<i<<"]<=mem["<<count4+1<<"] : "<< status <<endl;  
       status = clEnqueueWriteBuffer(queue[i], mem[count4+2], CL_TRUE, 0, sizeof(float)*rest, c, 0,NULL,NULL);
       cout << "commandQueue["<<i<<"]<=mem["<<count4+2<<"] : "<< status <<endl;  
     }
