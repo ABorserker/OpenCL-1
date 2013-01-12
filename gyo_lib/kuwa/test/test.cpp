@@ -1,4 +1,6 @@
 #include<iostream>
+#include<string>
+#include<fstream>
 #include<time.h>
 
 #ifdef __APPLE__
@@ -81,8 +83,8 @@ int main()
 
   for(y = 0;y < SIZE;y++){
     for(x = 0;x < SIZE ;x++){
-      a[y * SIZE + x] = 1;
-      b[y * SIZE + x] = 2;
+      a[y * SIZE + x] = 3;
+      b[y * SIZE + x] = 8;
       c[y * SIZE + x] = 0;
     }
   }
@@ -91,8 +93,8 @@ int main()
   float *a_[totaldev];
   float *b_[totaldev];
 
-  int delta = SIZE * SIZE / totaldev;
-  int rest = (SIZE * SIZE) % totaldev;
+  int delta = (SIZE / totaldev)* SIZE;
+  int rest = (SIZE % totaldev)* SIZE + delta;
 
   cout <<"delta = "<<delta<<", rest = "<<rest<<endl;
 
@@ -104,6 +106,7 @@ int main()
     cout<<"b["<<y<<"] address"<<b_[y]<<" "<<*b_[y]<<endl;
   }
 
+  /*
   static const char *source[] =
   {
     "#define SIZE 6\n\
@@ -113,33 +116,103 @@ int main()
           __global float *b,\n\
           __global float *c)\n\
     {\n\
-      for(int i=0;i<SIZE/5;i++){;\n\
+      for(int i=0;i<SIZE;i++){;\n\
         for(int j=0;j<SIZE;j++){\n\
             c[i*SIZE+j] = a[i*SIZE+j] + b[i*SIZE+j];\n\
         }\n\
       }\n\
     }\n"
   };
+*/
 
-  cl_program program[num_platforms];
+  string str, new_str="", new_str_last="";
+  const char *source1, *source_last;
+  bool flag=true;
+  char tmp[10];
+
+  //ソースコード書き換え
+  ifstream ifs("before.cl");
+  while(ifs && getline(ifs, str)){
+    cout << str <<endl;
+    if(str.find("for")!=string::npos && flag){
+      if(str.find("SIZE")!=string::npos){
+        sprintf(tmp,"SIZE/%d",totaldev);
+        str.replace(str.find("SIZE"), 4, tmp);
+        flag = false;
+      }
+
+    }
+    new_str += str;
+    new_str += "\n";
+  }
+  source1 = new_str.c_str();
+  cout<< new_str <<endl;
+
+
+cout<< "oooooooooooooooooo"<<endl;
+
+  //最後のデバイスのソースコード書き換え
+  ifstream ifs_last("before.cl");
+  flag = true;
+  while(ifs_last && getline(ifs_last, str)){
+    cout << str <<endl;
+    if(str.find("for")!=string::npos && flag){
+      if(str.find("SIZE")!=string::npos){
+        sprintf(tmp,"%d",SIZE/totaldev+(SIZE%totaldev));
+        str.replace(str.find("SIZE"), 4, tmp);
+        flag = false;
+      }
+
+    }
+    new_str_last += str;
+    new_str_last += "\n";
+  }
+  source_last = new_str_last.c_str();
+  cout<< new_str_last <<endl;
+
+  //build
+  cl_program program[num_platforms+1];
   for(int i =0,count = 0; i < num_platforms;i++)
   {
+    if(i != num_platforms-1 || rest == 0){
+      program[i] = clCreateProgramWithSource(context[i], 1, (const char**)&source1, NULL, &status);
+      cout<< "CreateProgram["<<i<<"] : "<<status<<endl;
 
-    program[i] = clCreateProgramWithSource(context[i], 1, (const char**)&source, NULL, &status);
-    cout<< "CreateProgram["<<i<<"] : "<<status<<endl;
+      status = clBuildProgram(program[i], num_devices[i], &device_list[count],NULL,NULL,NULL);
+      count += num_devices[i];
 
-    status = clBuildProgram(program[i], num_devices[i], &device_list[count],NULL,NULL,NULL);
-    count += num_devices[i];
+      cout << "Program["<<i<<"]Build : "<<status<< endl;
+    }
 
-    cout << "Program["<<i<<"]Build : "<<status<< endl;
+    else if(i == num_platforms-1 && rest != 0){
+      program[i] = clCreateProgramWithSource(context[i], 1, (const char**)&source1, NULL, &status);
+      cout<< "CreateProgram["<<i<<"] : "<<status<<endl;
+      status = clBuildProgram(program[i], num_devices[i]-1, &device_list[count],NULL,NULL,NULL);
+      count += num_devices[i];
+      count--;
+      cout << "Program["<<i<<"]Build : "<<status<< endl;
+ 
+      program[i+1] = clCreateProgramWithSource(context[i], 1, (const char**)&source_last, NULL, &status);
+      cout<< "last CreateProgram["<<i+1<<"] : "<<status<<endl;
+      status = clBuildProgram(program[i+1], 1, &device_list[count],NULL,NULL,NULL);
+      count += num_devices[i];
+      cout << "last Program["<<i+1<<"]Build : "<<status<< endl;
+    }
   }
   cl_kernel kernel[totaldev];
   int count3 = 0;
   for(int i = 0 ; i < num_platforms;i++){
     for(int j = 0;j < num_devices[i];j++){
-      kernel[count3] = clCreateKernel(program[i], "calc", &status);
-      cout << "create Kernel["<<count3<<"] : "<< status<<endl; 
-      count3++;
+      if(count3 != totaldev-1 || rest == 0){
+        kernel[count3] = clCreateKernel(program[i], "calc", &status);
+        cout << "program["<< i <<"] create Kernel["<<count3<<"] : "<< status<<endl;
+        count3++;
+      }
+      else if(count3 == totaldev-1 && rest != 0){
+        kernel[count3] = clCreateKernel(program[i+1], "calc", &status);
+        cout << "program["<< i+1 << "] last create Kernel["<<count3<<"] : "<< status<<endl;
+        count3++;
+      }
     }
   }
 
@@ -147,15 +220,19 @@ int main()
   int count4 = 0;
   for(int i =0;i<num_platforms;i++){
     for(int j = 0;j<num_devices[i];j++){
+      if(count4+2 != totaldev*3-1 || rest == 0){
       mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
       cout<<"context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
       mem[count4+1] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
       cout<<"context["<<i<<"] "<<"create mem["<<count4+1<<"] : "<<status<<endl; 
-      if(count4+2 != totaldev*3-1 || rest == 0){
         mem[count4+2] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*delta, NULL, &status);
         cout<<"context["<<i<<"] "<<"create mem["<<count4+2<<"] : "<<status<<endl;
       }
       else if(count4+2 == totaldev*3-1 && rest != 0){
+       mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*rest, NULL, &status);
+      cout<<"context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
+      mem[count4+1] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*rest, NULL, &status);
+      cout<<"context["<<i<<"] "<<"create mem["<<count4+1<<"] : "<<status<<endl; 
         mem[count4+2] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(float)*rest, NULL, &status);
         cout<<"context["<<i<<"] "<<"create mem["<<count4+2<<"] : "<<status<<endl;
       }
@@ -165,15 +242,19 @@ int main()
 
   count4=0;
   for(int i = 0;i<totaldev;i++,count4+=3){
+    if(count4+2 != totaldev*3-1 || rest == 0){
     status = clEnqueueWriteBuffer(queue[i], mem[count4], CL_TRUE, 0, sizeof(float)*delta, a_[i], 0,NULL,NULL);
     cout << "commandQueue["<<i<<"]<=mem["<<count4<<"] : "<< status <<endl; 
-    status = clEnqueueWriteBuffer(queue[i], mem[count4+1], CL_TRUE, 0, sizeof(float)*delta, b, 0,NULL,NULL);
+    status = clEnqueueWriteBuffer(queue[i], mem[count4+1], CL_TRUE, 0, sizeof(float)*delta, b_[i], 0,NULL,NULL);
     cout << "commandQueue["<<i<<"]<=mem["<<count4+1<<"] : "<< status <<endl;  
-    if(count4+2 != totaldev*3-1 || rest == 0){
       status = clEnqueueWriteBuffer(queue[i], mem[count4+2], CL_TRUE, 0, sizeof(float)*delta, c, 0,NULL,NULL);
       cout << "commandQueue["<<i<<"]<=mem["<<count4+2<<"] : "<< status <<endl; 
     }
     else if(count4+2 == totaldev*3-1 && rest != 0){
+     status = clEnqueueWriteBuffer(queue[i], mem[count4], CL_TRUE, 0, sizeof(float)*rest, a_[i], 0,NULL,NULL);
+    cout << "commandQueue["<<i<<"]<=mem["<<count4<<"] : "<< status <<endl; 
+    status = clEnqueueWriteBuffer(queue[i], mem[count4+1], CL_TRUE, 0, sizeof(float)*rest, b_[i], 0,NULL,NULL);
+    cout << "commandQueue["<<i<<"]<=mem["<<count4+1<<"] : "<< status <<endl;  
       status = clEnqueueWriteBuffer(queue[i], mem[count4+2], CL_TRUE, 0, sizeof(float)*rest, c, 0,NULL,NULL);
       cout << "commandQueue["<<i<<"]<=mem["<<count4+2<<"] : "<< status <<endl;  
     }
@@ -210,7 +291,7 @@ int main()
     }
     else if(3*i+2 == totaldev*3-1 && rest != 0){
       status = clEnqueueReadBuffer(queue[i], mem[3*i+2], CL_TRUE, 0, sizeof(float)*rest, c, 0, NULL, NULL);
-      cout << "result : "<<status<<" >> "<<endl;
+      cout << "rest :"<<rest<<" mem["<<3*i+2<<"] last result : "<<status<<" >> "<<endl;
       for(int j = 0; j < (SIZE/totaldev) + (SIZE%totaldev); j++)
       {
         for(int k = 0;k<SIZE;k++){

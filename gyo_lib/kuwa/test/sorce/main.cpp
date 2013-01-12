@@ -9,7 +9,7 @@ int main(){
   string str;
 
   int totaldev = 5;
-  char tmp;
+  char tmp[20];
   while(ifs && getline(ifs, str)){
     if(str.find("for")!=string::npos){
       if(str.find("SIZE")!=string::npos){
