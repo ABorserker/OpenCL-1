@@ -326,8 +326,12 @@ for(int i = 0;i<totaldev;i++){
   }
 }
 
+//実行
+//if()
+
+
 t3 = gettimeofday_sec();
-size_t globalsize[] = {1,1,1,1,1};
+size_t globalsize[] = {1,1024,1024,1024,1024};
 for(int i =0; i<totaldev;i++){
   status = clEnqueueNDRangeKernel(queue[i], kernel[i], 1, NULL, globalsize, NULL, 0, NULL, NULL);
   cout << "kernel done : " <<status << endl;
@@ -339,25 +343,25 @@ for(int i=0;i<totaldev;i++){
   if((num_hikisu+1)*i+num_hikisu != totaldev*(num_hikisu+1)-1 || rest == delta){
     status = clEnqueueReadBuffer(queue[i], mem[(num_hikisu+1)*i+num_hikisu], CL_TRUE, 0, sizeof(double)*delta, &memOut[delta*i], 0, NULL, NULL);
     cout << "mem["<<(num_hikisu+1)*i+num_hikisu<<"] result : "<<status<<" >> "<<endl;
-    /*for(int j = i*(SIZE/totaldev); j<(i+1)*(SIZE/totaldev);j++)
+    for(int j = i*(SIZE/totaldev); j<(i+1)*(SIZE/totaldev);j++)
     {
     for(int k = 0;k<SIZE;k++){
         cout << memOut[j*SIZE+k] << " ";
       }
       cout << endl;
-    }*/
+    }
     cout << endl;
   }
   else if((num_hikisu+1)*i+num_hikisu == totaldev*(num_hikisu+1)-1 && rest != delta){
     status = clEnqueueReadBuffer(queue[i], mem[(num_hikisu+1)*i+num_hikisu], CL_TRUE, 0, sizeof(double)*rest, &memOut[delta*i], 0, NULL, NULL);
     cout << "rest :"<<rest<<" mem["<<(num_hikisu+1)*i+num_hikisu<<"] last result : "<<status<<" >> "<<endl;
-    /*for(int j = 0; j < (SIZE/totaldev) + (SIZE%totaldev); j++)
+    for(int j = 0; j < (SIZE/totaldev) + (SIZE%totaldev); j++)
     {
       for(int k = 0;k<SIZE;k++){
         cout << memOut[j*SIZE+k] << " ";
       }
       cout << endl;
-    }*/
+    }
     cout << endl;
   }
 }

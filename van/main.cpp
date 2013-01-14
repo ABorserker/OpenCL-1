@@ -11,14 +11,14 @@ int main(){
 
   for(y = 0;y <SIZE;y++){
     for(x = 0;x < SIZE;x++){
-      a[y * SIZE + x] = 1;//y*SIZE+x; 
+      a[y * SIZE + x] = 3;//y*SIZE+x; 
       b[y * SIZE + x] = 2;//y*SIZE+x;
       //c[y * SIZE + x] = 0;
     }
   }
 
   //1.カーネルプログラム指定
-  string filename="seki.cl";
+  string filename="before.cl";
   //2.オブジェクト生成？？？
   clapi cl(filename);
   //3.メンバ関数実行
