@@ -7,13 +7,13 @@ int main(){
   unsigned int x, y;
   double *a = new double[SIZE*SIZE];
   double *b = new double[SIZE*SIZE];
-  double *c = new double[SIZE*SIZE];
+  double *c;// = new double[SIZE*SIZE];
 
   for(y = 0;y <SIZE;y++){
     for(x = 0;x < SIZE;x++){
-      a[y * SIZE + x] = 1;
-      b[y * SIZE + x] = 3;
-      c[y * SIZE + x] = 0;
+      a[y * SIZE + x] = y*SIZE+x; 
+      b[y * SIZE + x] = y*SIZE+x;
+      //c[y * SIZE + x] = 0;
     }
   }
 
@@ -37,7 +37,8 @@ int main(){
     cout << endl;
   }
 
-  free(a);
-  free(b);
-  free(c);
+
+  delete[] a;
+  delete[] b;
+  delete[] c;
 }
