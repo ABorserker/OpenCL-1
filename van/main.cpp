@@ -1,5 +1,5 @@
 #include"main.h"
-#define SIZE 10
+#define SIZE 5
 
 using namespace std;
 int main(){
@@ -11,14 +11,14 @@ int main(){
 
   for(y = 0;y <SIZE;y++){
     for(x = 0;x < SIZE;x++){
-      a[y * SIZE + x] = y*SIZE+x; 
-      b[y * SIZE + x] = y*SIZE+x;
+      a[y * SIZE + x] = 1;//y*SIZE+x; 
+      b[y * SIZE + x] = 2;//y*SIZE+x;
       //c[y * SIZE + x] = 0;
     }
   }
 
   //1.カーネルプログラム指定
-  string filename="before.cl";
+  string filename="seki.cl";
   //2.オブジェクト生成？？？
   clapi cl(filename);
   //3.メンバ関数実行
@@ -37,6 +37,7 @@ int main(){
     cout << endl;
   }
 
+//  cout << c[SIZE*SIZE-1] << endl;
 
   delete[] a;
   delete[] b;

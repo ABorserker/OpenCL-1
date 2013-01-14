@@ -275,7 +275,7 @@ int count4 = 0;
 for(int i =0;i<num_platforms;i++){
   for(int j = 0;j<num_devices[i]*(num_hikisu+1);j++){
     if(count4 != totaldev*(num_hikisu+1)-1 || rest == delta){
-      mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(double)*delta*2, NULL, &status);
+      mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(double)*delta, NULL, &status);
       cout<<"context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
       count4++;
     }
@@ -339,25 +339,25 @@ for(int i=0;i<totaldev;i++){
   if((num_hikisu+1)*i+num_hikisu != totaldev*(num_hikisu+1)-1 || rest == delta){
     status = clEnqueueReadBuffer(queue[i], mem[(num_hikisu+1)*i+num_hikisu], CL_TRUE, 0, sizeof(double)*delta, &memOut[delta*i], 0, NULL, NULL);
     cout << "mem["<<(num_hikisu+1)*i+num_hikisu<<"] result : "<<status<<" >> "<<endl;
-    for(int j = i*(SIZE/totaldev); j<(i+1)*(SIZE/totaldev);j++)
+    /*for(int j = i*(SIZE/totaldev); j<(i+1)*(SIZE/totaldev);j++)
     {
     for(int k = 0;k<SIZE;k++){
         cout << memOut[j*SIZE+k] << " ";
       }
       cout << endl;
-    }
+    }*/
     cout << endl;
   }
   else if((num_hikisu+1)*i+num_hikisu == totaldev*(num_hikisu+1)-1 && rest != delta){
-    status = clEnqueueReadBuffer(queue[i], mem[(num_hikisu+1)*i+num_hikisu], CL_TRUE, 0, sizeof(double)*rest, memOut, 0, NULL, NULL);
+    status = clEnqueueReadBuffer(queue[i], mem[(num_hikisu+1)*i+num_hikisu], CL_TRUE, 0, sizeof(double)*rest, &memOut[delta*i], 0, NULL, NULL);
     cout << "rest :"<<rest<<" mem["<<(num_hikisu+1)*i+num_hikisu<<"] last result : "<<status<<" >> "<<endl;
-    for(int j = 0; j < (SIZE/totaldev) + (SIZE%totaldev); j++)
+    /*for(int j = 0; j < (SIZE/totaldev) + (SIZE%totaldev); j++)
     {
       for(int k = 0;k<SIZE;k++){
         cout << memOut[j*SIZE+k] << " ";
       }
       cout << endl;
-    }
+    }*/
     cout << endl;
   }
 }
