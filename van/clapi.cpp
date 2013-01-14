@@ -327,17 +327,32 @@ for(int i = 0;i<totaldev;i++){
 }
 
 //実行
-//if()
+/*
+size_t globalsize[3];
+size_t actualsize;
+//for(int i = 0;i <totaldev;i++){
 
+status = clGetDeviceInfo(device_list[1], CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(globalsize), globalsize, &actualsize);
+size_t num_element = actualsize / sizeof(size_t);
+for(int i=0;i<num_element;i++){
 
-t3 = gettimeofday_sec();
-size_t globalsize[] = {1,1024,1024,1024,1024};
+  //cout<<"device_list["<<i<<"] globalsize : "<<globalsize[i]<<" "<<globalsize[i+1]<<" "<<globalsize[i+2]<<endl;
+cout <<" globalsize["<<i<<"]: "<<globalsize[i]<<""<<endl;
+}
+//}
+*/
+/*size_t globalsize[] = {1};
 for(int i =0; i<totaldev;i++){
   status = clEnqueueNDRangeKernel(queue[i], kernel[i], 1, NULL, globalsize, NULL, 0, NULL, NULL);
   cout << "kernel done : " <<status << endl;
 }
+*/
 
-
+t3 = gettimeofday_sec();
+for(int i =0;i<totaldev;i++){
+  status = clEnqueueTask(queue[i], kernel[i],NULL,NULL,NULL);
+  cout << "kernel done : "<<status <<endl;
+}
 
 for(int i=0;i<totaldev;i++){
   if((num_hikisu+1)*i+num_hikisu != totaldev*(num_hikisu+1)-1 || rest == delta){
@@ -345,7 +360,7 @@ for(int i=0;i<totaldev;i++){
     cout << "mem["<<(num_hikisu+1)*i+num_hikisu<<"] result : "<<status<<" >> "<<endl;
     for(int j = i*(SIZE/totaldev); j<(i+1)*(SIZE/totaldev);j++)
     {
-    for(int k = 0;k<SIZE;k++){
+      for(int k = 0;k<SIZE;k++){
         cout << memOut[j*SIZE+k] << " ";
       }
       cout << endl;

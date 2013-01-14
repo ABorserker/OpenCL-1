@@ -1,5 +1,5 @@
 #include"main.h"
-#define SIZE 5
+#define SIZE  10
 
 using namespace std;
 int main(){
@@ -11,8 +11,8 @@ int main(){
 
   for(y = 0;y <SIZE;y++){
     for(x = 0;x < SIZE;x++){
-      a[y * SIZE + x] = 3;//y*SIZE+x; 
-      b[y * SIZE + x] = 2;//y*SIZE+x;
+      a[y * SIZE + x] = y*SIZE+x; 
+      b[y * SIZE + x] = y*SIZE+x;
       //c[y * SIZE + x] = 0;
     }
   }
