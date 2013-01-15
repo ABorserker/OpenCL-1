@@ -11,7 +11,7 @@
 #include<CL/cl.h>
 #endif
 
-#define SIZE 10
+#define SIZE 10000
 using namespace std;
 
 double gettimeofday_sec()
@@ -31,7 +31,7 @@ clapi::clapi(string tmp){
 clapi::~clapi(){
 }
 
-bool clapi::clauto(int n, ...){
+double* clapi::clauto(int n, ...){
   num_hikisu = n;
   va_list args;
   va_start(args, n);
@@ -42,12 +42,10 @@ bool clapi::clauto(int n, ...){
   }
   va_end(args);
 
-  doOpenCL();
-
-  return true;
+  return doOpenCL();
 }
 
-bool clapi::doOpenCL(){
+double* clapi::doOpenCL(){
   double t1, t2, t3, t4, t5, t6;
   t1 = gettimeofday_sec();
 
@@ -358,14 +356,14 @@ for(int i=0;i<totaldev;i++){
   if((num_hikisu+1)*i+num_hikisu != totaldev*(num_hikisu+1)-1 || rest == delta){
     status = clEnqueueReadBuffer(queue[i], mem[(num_hikisu+1)*i+num_hikisu], CL_TRUE, 0, sizeof(double)*delta, &memOut[delta*i], 0, NULL, NULL);
     cout << "mem["<<(num_hikisu+1)*i+num_hikisu<<"] result : "<<status<<" >> "<<endl;
-    for(int j = i*(SIZE/totaldev); j<(i+1)*(SIZE/totaldev);j++)
+    /*for(int j = i*(SIZE/totaldev); j<(i+1)*(SIZE/totaldev);j++)
     {
       for(int k = 0;k<SIZE;k++){
         cout << memOut[j*SIZE+k] << " ";
       }
       cout << endl;
     }
-    cout << endl;
+    cout << endl;*/
   }
   else if((num_hikisu+1)*i+num_hikisu == totaldev*(num_hikisu+1)-1 && rest != delta){
     status = clEnqueueReadBuffer(queue[i], mem[(num_hikisu+1)*i+num_hikisu], CL_TRUE, 0, sizeof(double)*rest, &memOut[delta*i], 0, NULL, NULL);
@@ -380,7 +378,6 @@ for(int i=0;i<totaldev;i++){
     cout << endl;
   }
 }
-
 
 t4 = gettimeofday_sec();
 
@@ -408,10 +405,7 @@ t2 = gettimeofday_sec();
 cout.setf(ios::fixed, ios::floatfield);
 cout <<"calc time = "<<t4 - t3<<" sec."<< endl;
 cout <<"total time = "<<t2 -t1<<" sec."<< endl;
-return true;
+
+return memOut;
 }
 
-double* clapi::getOut(){
-  //return new double[SIZE*SIZE];
-  return memOut;
-}

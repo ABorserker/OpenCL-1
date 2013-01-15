@@ -1,5 +1,5 @@
 #include"main.h"
-#define SIZE  10
+#define SIZE  10000
 
 using namespace std;
 int main(){
@@ -24,9 +24,7 @@ int main(){
   //3.メンバ関数実行
   //cl.auto(入力数, データ１のdouble型配列の個数, データ１の配列のアドレス, データ２の配列の個数, データ２の配列のアドレス, ....)
 
-  if(!cl.clauto(2, SIZE*SIZE, a, SIZE*SIZE, b))return -1;
-
-  c = cl.getOut();
+  c = cl.clauto(2, SIZE*SIZE, a, SIZE*SIZE, b);
 
   //結果表示
   cout<<"加算結果"<<endl;

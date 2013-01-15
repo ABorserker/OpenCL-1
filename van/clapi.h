@@ -21,9 +21,8 @@ class clapi {
     clapi();
     clapi(string);
     ~clapi();
-    bool clauto(int , ...);
-    bool doOpenCL();
-    double* getOut();
+    double* clauto(int , ...);
+    double* doOpenCL();
     //cl_device_id device_list[5];
     double* memOut;
   private:
