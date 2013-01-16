@@ -7,16 +7,12 @@ int main(){
   unsigned int x, y;
   double *a = new double[SIZE*SIZE];
   double *b = new double[SIZE*SIZE];
-  double *b1 = new double[SIZE*SIZE];
-  double *b2 = new double[SIZE*SIZE];
   double *c;// = new double[SIZE*SIZE];
 
   for(y = 0;y <SIZE;y++){
     for(x = 0;x < SIZE;x++){
       a[y * SIZE + x] = y*SIZE+x; 
       b[y * SIZE + x] = y*SIZE+x;
-      b1[y * SIZE + x] = 1;
-      b2[y * SIZE + x] = 2;
       //c[y * SIZE + x] = 0;
     }
   }
@@ -28,7 +24,7 @@ int main(){
   //3.メンバ関数実行
   //cl.auto(入力数, データ１のdouble型配列の個数, データ１の配列のアドレス, データ２の配列の個数, データ２の配列のアドレス, ....)
 
-  c = cl.clauto(3, SIZE*SIZE, a, SIZE*SIZE, b, SIZE*SIZE, b1);
+  c = cl.clauto(2, SIZE*SIZE, a, SIZE*SIZE, b);
 
   //結果表示
   cout<<"加算結果"<<endl;

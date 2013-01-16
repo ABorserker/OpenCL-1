@@ -161,14 +161,9 @@ while(ifs && getline(ifs, str)){
       flag = false;
     }
   }
-  while(1){
-    if(str.find("SIZE")!=string::npos){
+  while(str.find("SIZE")!=string::npos){
       sprintf(charsize,"%d", size);
       str.replace(str.find("SIZE"), 4, charsize);
-    }
-    if(str.find("SIZE")==string::npos){
-      break;
-    }
   }
 
   new_str += str;
@@ -189,14 +184,9 @@ while(ifs_last && getline(ifs_last, str)){
     }
 
   }
-  while(1){
-    if(str.find("SIZE")!=string::npos){
+  while(str.find("SIZE")!=string::npos){
       sprintf(charsize,"%d", size);
       str.replace(str.find("SIZE"), 4, charsize);
-    }
-    if(str.find("SIZE")==string::npos){
-      break;
-    }
   }
   new_str_last += str;
   new_str_last += "\n";
@@ -330,7 +320,6 @@ for(int i=0;i<totaldev;i++){
     cout << endl;
   }
 }
-
 t4 = gettimeofday_sec();
 
 for(int i=0;i<totaldev;i++){
@@ -343,16 +332,17 @@ for(int i=0;i<totaldev;i++){
 for(int i=0;i<num_platforms+1;i++){ 
   clReleaseProgram(program[i]);
 }
+
 for(int i=0;i<totaldev*(num_hikisu+1);i++){ 
   clReleaseMemObject(mem[i]);
 }
+
 for(int i=0;i<totaldev;i++){ 
   clReleaseCommandQueue(queue[i]);
 }
 for(int i=0;i<num_platforms;i++){ 
   clReleaseContext(context[i]);
 }
-
 t2 = gettimeofday_sec();
 cout.setf(ios::fixed, ios::floatfield);
 cout <<"calc time = "<<t4 - t3<<" sec."<< endl;
