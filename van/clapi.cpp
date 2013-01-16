@@ -11,7 +11,6 @@
 #include<CL/cl.h>
 #endif
 
-//#define SIZE 10000
 using namespace std;
 
 double gettimeofday_sec()
@@ -118,22 +117,6 @@ double* clapi::doOpenCL(){
     }
   }
 
-  //////////////////////////////////
-  /*
-     unsigned int x, y;
-     double *a = new double[SIZE*SIZE];
-     double *b = new double[SIZE*SIZE];
-     double *c = new double[SIZE*SIZE];
-
-     for(y = 0;y < SIZE;y++){
-     for(x = 0;x < SIZE ;x++){
-     a[y * SIZE + x] = 1;
-     b[y * SIZE + x] = 2;
-     c[y * SIZE + x] = 0;
-     }
-     }
-     *////////////////////////////////////
-
   //出力先だけ初期化
   memOut = new double[size];
 
@@ -141,8 +124,6 @@ double* clapi::doOpenCL(){
       memOut[j] = 0;
   }
 
-  //double *a_[totaldev];
-  //double *b_[totaldev];
   double* memIn[num_hikisu][totaldev];
 
   int delta = size / totaldev;//device１つあたりの計算する要素数
@@ -150,10 +131,13 @@ double* clapi::doOpenCL(){
 
   cout <<"delta = "<<delta<<", rest = "<<rest<<endl;
 
-  //cout<<"a address : "<<a<<endl;
+  if(delta == 0){
+    cout << "エラー : 配列サイズ＜デバイス数"<<endl;
+    return false;
+  }
+
   for(int j = 0;j<num_hikisu;j++){
     for(int i = 0;i<totaldev;i++){
-      //memIn[i][y] = s[delta * y];
 
       memIn[j][i] = s[j] + (delta * i);
       cout<<"s["<<j<<"] address"<<s[j]<<" "<<*s[j]<<endl;
@@ -161,24 +145,6 @@ double* clapi::doOpenCL(){
     }
   }
 
-  /*
-     static const char *source[] =
-     {
-     "#define SIZE 6\n\
-#pragma OPENCL EXTENSION cl_khr_fp64:enable\n\
-__kernel void\n\
-calc(__global double *a,\n\
-__global double *b,\n\
-__global double *c)\n\
-{\n\
-for(int i=0;i<SIZE;i++){;\n\
-for(int j=0;j<SIZE;j++){\n\
-c[i*SIZE+j] = a[i*SIZE+j] + b[i*SIZE+j];\n\
-}\n\
-}\n\
-}\n"
-};
-*/
 
 string str, new_str="", new_str_last="";
 const char *source1, *source_last;
@@ -188,7 +154,6 @@ char tmp[10],charsize[20];
 //ソースコード書き換え
 ifstream ifs(filename.c_str());
 while(ifs && getline(ifs, str)){
-  //cout << str <<endl;
   if(str.find("for")!=string::npos && flag){
     if(str.find("SIZE")!=string::npos){
       sprintf(tmp,"%d",delta);
@@ -216,7 +181,6 @@ cout<< new_str <<endl;
 ifstream ifs_last(filename.c_str());
 flag = true;
 while(ifs_last && getline(ifs_last, str)){
-  //cout << str <<endl;
   if(str.find("for")!=string::npos && flag){
     if(str.find("SIZE")!=string::npos){
       sprintf(tmp,"%d",rest);
@@ -309,10 +273,6 @@ for(int i =0;i<num_platforms;i++){
 for(int i = 0;i<totaldev;i++){
   if(i*(num_hikisu+1) != (totaldev-1)*(num_hikisu+1) || rest == delta){
     for(int j =0;j < num_hikisu;j++){
-
-      //cout <<"eeeeeeeeeee "<<i*(num_hikisu+1)+j<< " j : " << j <<", i : "<<i<<endl;
-      //cout << "commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+j<<"] : "<< status <<endl;
-
       status = clEnqueueWriteBuffer(queue[i], mem[i*(num_hikisu+1)+j], CL_TRUE, 0, sizeof(double)*delta, memIn[j][i], 0,NULL,NULL);
       cout << "if commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+j<<"] memIn["<<j<<"]["<<i<<"] status:"<< status <<endl;
     }
@@ -344,28 +304,6 @@ for(int i = 0;i<totaldev;i++){
     cout <<"kernel["<<i<<"] mem["<<i*(num_hikisu+1)+j<<"] set : "<<status<<endl;
   }
 }
-
-//実行
-/*
-   size_t globalsize[3];
-   size_t actualsize;
-//for(int i = 0;i <totaldev;i++){
-
-status = clGetDeviceInfo(device_list[1], CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(globalsize), globalsize, &actualsize);
-size_t num_element = actualsize / sizeof(size_t);
-for(int i=0;i<num_element;i++){
-
-//cout<<"device_list["<<i<<"] globalsize : "<<globalsize[i]<<" "<<globalsize[i+1]<<" "<<globalsize[i+2]<<endl;
-cout <<" globalsize["<<i<<"]: "<<globalsize[i]<<""<<endl;
-}
-//}
-*/
-/*size_t globalsize[] = {1};
-  for(int i =0; i<totaldev;i++){
-  status = clEnqueueNDRangeKernel(queue[i], kernel[i], 1, NULL, globalsize, NULL, 0, NULL, NULL);
-  cout << "kernel done : " <<status << endl;
-  }
-  */
 
 t3 = gettimeofday_sec();
 for(int i =0;i<totaldev;i++){
