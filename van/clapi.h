@@ -22,6 +22,7 @@ class clapi {
     clapi(string);
     ~clapi();
     double* clauto(int , ...);
+    int size;
     double* doOpenCL();
     //cl_device_id device_list[5];
     double* memOut;
@@ -49,7 +50,7 @@ class clapi {
     //cl_mem memOut;
     string filename;
     double* s[10];
-    int size[10];
+    int asize[10];
     int num_hikisu;
 };
 

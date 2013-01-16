@@ -11,7 +11,7 @@
 #include<CL/cl.h>
 #endif
 
-#define SIZE 10000
+//#define SIZE 10000
 using namespace std;
 
 double gettimeofday_sec()
@@ -22,6 +22,7 @@ double gettimeofday_sec()
 }
 
 clapi::clapi(){
+
 }
 
 clapi::clapi(string tmp){
@@ -37,10 +38,20 @@ double* clapi::clauto(int n, ...){
   va_start(args, n);
 
   for(int t = 0; t<n ; t++){
-    size[t] = va_arg(args,int);
+    asize[t] = va_arg(args,int);
     s[t] = va_arg(args, double*);
   }
   va_end(args);
+
+  for(int i = 0;i<num_hikisu-1;i++){
+    if(asize[i] == asize[i+1]){
+      size = asize[0];
+    }
+    else if(asize[i] != asize[i+1]){
+      cout << "入力した配列はすべて同じ大きさにしてください"<<endl;
+    }
+    
+  }
 
   return doOpenCL();
 }
@@ -124,32 +135,29 @@ double* clapi::doOpenCL(){
      *////////////////////////////////////
 
   //出力先だけ初期化
-  memOut = new double[SIZE*SIZE];
+  memOut = new double[size];
 
-  unsigned int x, y;
-  for(y = 0; y < SIZE; y++){
-    for(x = 0; x <SIZE; x++){
-      memOut[y * SIZE+ x] = 0;
-    }
+    for(int j = 0; j < size; j++){
+      memOut[j] = 0;
   }
 
   //double *a_[totaldev];
   //double *b_[totaldev];
   double* memIn[num_hikisu][totaldev];
 
-  int delta = (SIZE / totaldev)* SIZE;//device１つあたりの計算する要素数
-  int rest = (SIZE % totaldev)* SIZE + delta;
+  int delta = size / totaldev;//device１つあたりの計算する要素数
+  int rest = (size % totaldev) + delta;
 
   cout <<"delta = "<<delta<<", rest = "<<rest<<endl;
 
   //cout<<"a address : "<<a<<endl;
-  for(y = 0;y<totaldev;y++){
-    for(int i = 0;i<num_hikisu;i++){
+  for(int j = 0;j<num_hikisu;j++){
+    for(int i = 0;i<totaldev;i++){
       //memIn[i][y] = s[delta * y];
 
-      memIn[i][y] = s[i] + /*sizeof(double)**/(delta * y);
-      cout<<"s["<<i<<"] address"<<s[i]<<" "<<*s[i]<<endl;
-      cout<<"memIn["<<i<<"]["<<y<<"] address"<<memIn[i][y]<<" "<<*memIn[i][y]<<endl;
+      memIn[j][i] = s[j] + (delta * i);
+      cout<<"s["<<j<<"] address"<<s[j]<<" "<<*s[j]<<endl;
+      cout<<"memIn["<<j<<"]["<<i<<"] address"<<memIn[j][i]<<" "<<*memIn[j][i]<<endl;
     }
   }
 
@@ -175,24 +183,29 @@ c[i*SIZE+j] = a[i*SIZE+j] + b[i*SIZE+j];\n\
 string str, new_str="", new_str_last="";
 const char *source1, *source_last;
 bool flag=true;
-char tmp[10],size[20];
+char tmp[10],charsize[20];
 
 //ソースコード書き換え
 ifstream ifs(filename.c_str());
 while(ifs && getline(ifs, str)){
   //cout << str <<endl;
-  if(str.find("#define SIZE")!=string::npos){
-    sprintf(size,"#define SIZE %d",SIZE);
-    str.replace(str.find("#define SIZE"), 12, size);
-  }
   if(str.find("for")!=string::npos && flag){
     if(str.find("SIZE")!=string::npos){
-      sprintf(tmp,"SIZE/%d",totaldev);
+      sprintf(tmp,"%d",delta);
       str.replace(str.find("SIZE"), 4, tmp);
       flag = false;
     }
-
   }
+  while(1){
+    if(str.find("SIZE")!=string::npos){
+      sprintf(charsize,"%d", size);
+      str.replace(str.find("SIZE"), 4, charsize);
+    }
+    if(str.find("SIZE")==string::npos){
+      break;
+    }
+  }
+
   new_str += str;
   new_str += "\n";
 }
@@ -204,20 +217,26 @@ ifstream ifs_last(filename.c_str());
 flag = true;
 while(ifs_last && getline(ifs_last, str)){
   //cout << str <<endl;
-  if(str.find("#define SIZE")!=string::npos){
-    sprintf(size,"#define SIZE %d",SIZE);
-    str.replace(str.find("#define SIZE"), 12, size);
-  }
   if(str.find("for")!=string::npos && flag){
     if(str.find("SIZE")!=string::npos){
-      sprintf(tmp,"%d",SIZE/totaldev+(SIZE%totaldev));
+      sprintf(tmp,"%d",rest);
       str.replace(str.find("SIZE"), 4, tmp);
       flag = false;
     }
 
   }
+  while(1){
+    if(str.find("SIZE")!=string::npos){
+      sprintf(charsize,"%d", size);
+      str.replace(str.find("SIZE"), 4, charsize);
+    }
+    if(str.find("SIZE")==string::npos){
+      break;
+    }
+  }
   new_str_last += str;
   new_str_last += "\n";
+
 }
 source_last = new_str_last.c_str();
 cout<< new_str_last <<endl;
@@ -268,21 +287,23 @@ for(int i = 0 ; i < num_platforms;i++){
   }
 }
 
-cl_mem mem[totaldev*(num_hikisu+1)];
 int count4 = 0;
+cl_mem mem[totaldev*(num_hikisu+1)];
 for(int i =0;i<num_platforms;i++){
-  for(int j = 0;j<num_devices[i]*(num_hikisu+1);j++){
-    if(count4 != totaldev*(num_hikisu+1)-1 || rest == delta){
+  for(int j = 0;j<num_devices[i]*(num_hikisu+1);j++){//各プラットホームでのメモリオブジェクトカウント
+    if(count4/(num_hikisu+1) != totaldev-1 || rest == delta){
       mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(double)*delta, NULL, &status);
-      cout<<"context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
+      cout<<"if context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
       count4++;
     }
-    else if(count4 == totaldev*(num_hikisu+1)-1 && rest != delta){
+     else if(count4/(num_hikisu+1) == totaldev-1 && rest != delta){
       mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(double)*rest, NULL, &status);
-      cout<<"context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
+      cout<<"elseif context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
+      count4++;
     }
   }
 }
+
 
 //入力データ書き込み
 for(int i = 0;i<totaldev;i++){
@@ -299,7 +320,7 @@ for(int i = 0;i<totaldev;i++){
   else if(i*(num_hikisu+1) == (totaldev-1)*(num_hikisu+1) && rest != delta){
     for(int j = 0;j< num_hikisu;j++){
       status = clEnqueueWriteBuffer(queue[i], mem[i*(num_hikisu+1)+j], CL_TRUE, 0, sizeof(double)*rest, memIn[j][i], 0,NULL,NULL);
-      cout << "elseif commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+j<<"] : "<< status <<endl; 
+      cout << "elseif commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+j<<"] memIn["<<j<<"]["<<i<<"] status : "<< status <<endl; 
     }
   }
 }
@@ -308,11 +329,11 @@ for(int i = 0;i<totaldev;i++){
 for(int i = 0;i<totaldev;i++){
   if(i*(num_hikisu+1) != (totaldev-1)*(num_hikisu+1) || rest == delta){
     status = clEnqueueWriteBuffer(queue[i], mem[i*(num_hikisu+1)+num_hikisu], CL_TRUE, 0, sizeof(double)*delta, memOut, 0,NULL,NULL);
-    cout << "commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+num_hikisu<<"] : "<< status <<endl;
+    cout << "if commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+num_hikisu<<"] : "<< status <<endl;
   }
   else if(i*(num_hikisu+1) == (totaldev-1)*(num_hikisu+1) && rest != delta){
     status = clEnqueueWriteBuffer(queue[i], mem[i*(num_hikisu+1)+num_hikisu], CL_TRUE, 0, sizeof(double)*rest, memOut, 0,NULL,NULL);
-    cout << "commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+num_hikisu<<"] : "<< status <<endl; 
+    cout << "elseif commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+num_hikisu<<"] : "<< status <<endl; 
   }
 }
 
@@ -326,25 +347,25 @@ for(int i = 0;i<totaldev;i++){
 
 //実行
 /*
-size_t globalsize[3];
-size_t actualsize;
+   size_t globalsize[3];
+   size_t actualsize;
 //for(int i = 0;i <totaldev;i++){
 
 status = clGetDeviceInfo(device_list[1], CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(globalsize), globalsize, &actualsize);
 size_t num_element = actualsize / sizeof(size_t);
 for(int i=0;i<num_element;i++){
 
-  //cout<<"device_list["<<i<<"] globalsize : "<<globalsize[i]<<" "<<globalsize[i+1]<<" "<<globalsize[i+2]<<endl;
+//cout<<"device_list["<<i<<"] globalsize : "<<globalsize[i]<<" "<<globalsize[i+1]<<" "<<globalsize[i+2]<<endl;
 cout <<" globalsize["<<i<<"]: "<<globalsize[i]<<""<<endl;
 }
 //}
 */
 /*size_t globalsize[] = {1};
-for(int i =0; i<totaldev;i++){
+  for(int i =0; i<totaldev;i++){
   status = clEnqueueNDRangeKernel(queue[i], kernel[i], 1, NULL, globalsize, NULL, 0, NULL, NULL);
   cout << "kernel done : " <<status << endl;
-}
-*/
+  }
+  */
 
 t3 = gettimeofday_sec();
 for(int i =0;i<totaldev;i++){
@@ -356,24 +377,17 @@ for(int i=0;i<totaldev;i++){
   if((num_hikisu+1)*i+num_hikisu != totaldev*(num_hikisu+1)-1 || rest == delta){
     status = clEnqueueReadBuffer(queue[i], mem[(num_hikisu+1)*i+num_hikisu], CL_TRUE, 0, sizeof(double)*delta, &memOut[delta*i], 0, NULL, NULL);
     cout << "mem["<<(num_hikisu+1)*i+num_hikisu<<"] result : "<<status<<" >> "<<endl;
-    /*for(int j = i*(SIZE/totaldev); j<(i+1)*(SIZE/totaldev);j++)
-    {
-      for(int k = 0;k<SIZE;k++){
-        cout << memOut[j*SIZE+k] << " ";
-      }
-      cout << endl;
+    for(int j = i*delta; j<(i+1)*delta;j++){
+      cout << memOut[j] << " ";
     }
-    cout << endl;*/
+    cout<<endl;
   }
   else if((num_hikisu+1)*i+num_hikisu == totaldev*(num_hikisu+1)-1 && rest != delta){
     status = clEnqueueReadBuffer(queue[i], mem[(num_hikisu+1)*i+num_hikisu], CL_TRUE, 0, sizeof(double)*rest, &memOut[delta*i], 0, NULL, NULL);
     cout << "rest :"<<rest<<" mem["<<(num_hikisu+1)*i+num_hikisu<<"] last result : "<<status<<" >> "<<endl;
-    for(int j = 0; j < (SIZE/totaldev) + (SIZE%totaldev); j++)
+    for(int j = i*delta; j < i*delta+rest ; j++)
     {
-      for(int k = 0;k<SIZE;k++){
-        cout << memOut[j*SIZE+k] << " ";
-      }
-      cout << endl;
+      cout << memOut[j] << " ";
     }
     cout << endl;
   }

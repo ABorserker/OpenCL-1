@@ -1,5 +1,5 @@
 #include"main.h"
-#define SIZE  10000
+#define SIZE  11
 
 using namespace std;
 int main(){
