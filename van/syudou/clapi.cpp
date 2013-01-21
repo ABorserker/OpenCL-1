@@ -45,6 +45,7 @@ double* clapi::clauto(int n, ...){
   for(int i = 0;i<num_hikisu-1;i++){
     if(asize[i] == asize[i+1]){
       size = asize[0];
+      cout<<"num_hikisu : "<<num_hikisu<<endl;
     }
     else if(asize[i] != asize[i+1]){
       cout << "入力した配列はすべて同じ大きさにしてください"<<endl;

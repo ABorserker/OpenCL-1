@@ -6,8 +6,14 @@
 __kernel void
 calc(__global double *a,
               __global double *b,
-              __global double *c)
+  //            __global double *c,
+  //            __global double *d,
+  //            __global double *e,
+  //            __global double *f,
+  //            __global double *g,
+  //            __global double *h,
+              __global double *o)
 {
-  c[get_global_id(0)*1024 + get_global_id(1)]=a[get_global_id(0)*1024+get_global_id(1)] + b[get_global_id(0)*1024+get_global_id(1)];
+  o[get_global_id(0)*1024 + get_global_id(1)]=a[get_global_id(0)*1024+get_global_id(1)] + b[get_global_id(0)*1024+get_global_id(1)];// + h[get_global_id(0)*1024+get_global_id(1)];
 }
 
