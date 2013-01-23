@@ -5,51 +5,35 @@ using namespace std;
 int main(){
 
   unsigned int x, y;
-  double *a = new double[SIZE*SIZE];
-  double *b = new double[SIZE*SIZE];
-  //double *c = new double[SIZE*SIZE];
-  //double *d = new double[SIZE*SIZE];
-  //double *e = new double[SIZE*SIZE];
-  //double *f = new double[SIZE*SIZE];
-  //double *g = new double[SIZE*SIZE];
-  //double *h = new double[SIZE*SIZE];
-  double *o;// = new double[SIZE*SIZE];
+  double *input1 = new double[SIZE*SIZE];
+  double *input2 = new double[SIZE*SIZE];
+  double *output;
 
   for(y = 0;y <SIZE;y++){
     for(x = 0;x < SIZE;x++){
-      a[y * SIZE + x] = y*SIZE+x; 
-      b[y * SIZE + x] = y*SIZE+x; 
-    //  c[y * SIZE + x] = y*SIZE+x; 
-    //  d[y * SIZE + x] = y*SIZE+x; 
-    //  e[y * SIZE + x] = y*SIZE+x; 
-    //  f[y * SIZE + x] = y*SIZE+x; 
-    //  g[y * SIZE + x] = y*SIZE+x; 
-    //  h[y * SIZE + x] = y*SIZE+x; 
-      //c[y * SIZE + x] = 0;
+      input1[y * SIZE + x] = y*SIZE+x; 
+      input2[y * SIZE + x] = y*SIZE+x; 
     }
   }
 
   //1.カーネルプログラム指定
-  string filename="before.cl";
-  //2.オブジェクト生成？？？
+  string filename="calc.cl";
+  //2.オブジェクト生成
   clapi cl(filename);
   //3.メンバ関数実行
-  //cl.auto(入力数, データ１のdouble型配列の個数, データ１の配列のアドレス, データ２の配列の個数, データ２の配列のアドレス, ....)
+  //cl.auto(入力数, データ１のdouble型配列の個数, データ１の配列のアドレス, 
+  //データ２の配列の個数, データ２の配列のアドレス, ....)
 
-  o = cl.clauto(2, SIZE*SIZE, a, SIZE*SIZE, b);
+  output = cl.clauto(2, SIZE*SIZE, a, SIZE*SIZE, b);
 
   //結果表示
   cout<<"加算結果"<<endl;
   for(int i = 0 ; i < SIZE ; i++){
     for(int j = 0 ; j < SIZE ; j++){
-      cout<< o[i*SIZE+j] << " " ;
+      cout<< output[i*SIZE+j] << " " ;
     }
     cout << endl;
   }
 
-//  cout << c[SIZE*SIZE-1] << endl;
-
-  delete[] a;
-  delete[] b;
-  //delete[] c;
+  delete[] input2;
 }
