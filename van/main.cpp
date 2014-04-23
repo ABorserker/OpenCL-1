@@ -1,7 +1,20 @@
-#include"main.h"
+#include<iostream>
+#include<cstdlib>
+#include<string>
+#include<cstdio>
+#include"clapi.h"
+
+#ifdef __APPLE__
+#include<OpenCL/opencl.h>
+#else
+#include<CL/cl.h>
+#endif //__APPLE
+
+#define MAX_SOURCE_SIZE (0x100000)
 #define SIZE 1024 
 
 using namespace std;
+
 int main(){
 
   unsigned int x, y;
@@ -28,8 +41,8 @@ int main(){
 
   //結果表示
   cout<<"加算結果"<<endl;
-  for(int i = 0 ; i < SIZE ; i++){
-    for(int j = 0 ; j < SIZE ; j++){
+  for(int i = 0 ; i < SIZE ; i++) {
+    for(int j = 0 ; j < SIZE ; j++) {
       cout<< output[i*SIZE+j] << " " ;
     }
     cout << endl;
