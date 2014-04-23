@@ -45,6 +45,7 @@ double* clapi::clauto(int n, ...){
   for(int i = 0;i<num_hikisu-1;i++){
     if(asize[i] == asize[i+1]){
       size = asize[0];
+      cout<<"num_hikisu : "<<num_hikisu<<endl;
     }
     else if(asize[i] != asize[i+1]){
       cout << "入力した配列はすべて同じ大きさにしてください"<<endl;
@@ -296,10 +297,21 @@ for(int i = 0;i<totaldev;i++){
 }
 
 t3 = gettimeofday_sec();
+size_t globalsize[]={1024/totaldev,1024};
+//size_t localsize[]={256};
+for(int i = 0;i<totaldev;i++){
+status= clEnqueueNDRangeKernel(queue[i], kernel[i], 2, NULL,globalsize,NULL,0,NULL,NULL);
+cout<< "kernel done : "<<status<<endl;
+}
+/*
 for(int i =0;i<totaldev;i++){
   status = clEnqueueTask(queue[i], kernel[i],NULL,NULL,NULL);
   cout << "kernel done : "<<status <<endl;
-}
+}*/
+t4 = gettimeofday_sec();
+cout.setf(ios::fixed, ios::floatfield);
+cout <<"calc time = "<<t4 - t3<<" sec."<< endl;
+
 
 for(int i=0;i<totaldev;i++){
   if((num_hikisu+1)*i+num_hikisu != totaldev*(num_hikisu+1)-1 || rest == delta){
@@ -320,7 +332,10 @@ for(int i=0;i<totaldev;i++){
     cout << endl;*/
   }
 }
-t4 = gettimeofday_sec();
+t2 = gettimeofday_sec();
+cout.setf(ios::fixed, ios::floatfield);
+cout <<"total time = "<<t2 -t1<<" sec."<< endl;
+
 
 for(int i=0;i<totaldev;i++){
   status = clFlush(queue[i]);
@@ -345,7 +360,6 @@ for(int i=0;i<num_platforms;i++){
 }
 t2 = gettimeofday_sec();
 cout.setf(ios::fixed, ios::floatfield);
-cout <<"calc time = "<<t4 - t3<<" sec."<< endl;
 cout <<"total time = "<<t2 -t1<<" sec."<< endl;
 
 return memOut;
