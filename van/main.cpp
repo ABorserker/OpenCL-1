@@ -36,7 +36,7 @@ int main(int argc, char **argv){
   //cl.auto(入力数, データ１のdouble型配列の個数, データ１の配列のアドレス, 
   //データ２の配列の個数, データ２の配列のアドレス, ....)
 
-  //output = cl.clauto(2, SIZE*SIZE, a, SIZE*SIZE, b);
+  output = cl.clauto(2, SIZE*SIZE, input1, SIZE*SIZE, input2);
 
   //結果表示
   std::cout << "加算結果" << std::endl;
