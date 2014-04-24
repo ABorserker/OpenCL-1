@@ -76,7 +76,7 @@ double *clapi::doOpenCL_classify()
   std::vector<cl::Platform> platforms;
   cl::Platform::get(&platforms);
 
-  if(platform.size() == 0) {
+  if(platforms.size() == 0) {
     std::cerr << "ERROR: Can NOT find any platform" << std::endl;
     exit(EXIT_FAILURE);
   }
