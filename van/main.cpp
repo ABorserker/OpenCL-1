@@ -13,9 +13,8 @@
 #define MAX_SOURCE_SIZE (0x100000)
 #define SIZE 1024 
 
-using namespace std;
 
-int main(){
+int main(int argc, char **argv){
 
   unsigned int x, y;
   double *input1 = new double[SIZE*SIZE];
@@ -30,22 +29,22 @@ int main(){
   }
 
   //1.カーネルプログラム指定
-  string filename="calc.cl";
+  std::string filename="calc.cl";
   //2.オブジェクト生成
   clapi cl(filename);
   //3.メンバ関数実行
   //cl.auto(入力数, データ１のdouble型配列の個数, データ１の配列のアドレス, 
   //データ２の配列の個数, データ２の配列のアドレス, ....)
 
-  output = cl.clauto(2, SIZE*SIZE, a, SIZE*SIZE, b);
+  //output = cl.clauto(2, SIZE*SIZE, a, SIZE*SIZE, b);
 
   //結果表示
-  cout<<"加算結果"<<endl;
+  std::cout << "加算結果" << std::endl;
   for(int i = 0 ; i < SIZE ; i++) {
     for(int j = 0 ; j < SIZE ; j++) {
-      cout<< output[i*SIZE+j] << " " ;
+      std::cout<< output[i*SIZE+j] << " " ;
     }
-    cout << endl;
+    std::cout << std::endl;
   }
 
   delete[] input2;
