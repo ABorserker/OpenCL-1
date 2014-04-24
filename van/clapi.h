@@ -2,13 +2,14 @@
 #define CLAPI_H_
 
 #ifdef __APPLE__
-#include<OpenCL/opencl.h>
+#include<OpenCL/opencl.hpp>
 #else
-#include<CL/cl.h>
+#include<CL/cl.hpp>
 #endif //__APPLE
 
 #include<stdarg.h>
 #include<string>
+#include <vector>
 #include<cstdio>
 #include<iostream>
 
