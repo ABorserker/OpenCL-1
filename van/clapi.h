@@ -23,6 +23,7 @@ class clapi
     double* clauto(int , ...);
     int size;
     double* doOpenCL();
+    double *doOpenCL_classify();
     //cl_device_id device_list[5];
     double* memOut;
 

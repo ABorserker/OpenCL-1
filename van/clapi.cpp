@@ -1,5 +1,6 @@
 #include"clapi.h"
 #include<iostream>
+#include <cstdlib> //exit
 #include<string>
 #include<fstream>
 #include<time.h>
@@ -19,35 +20,39 @@ double gettimeofday_sec()
   return tv.tv_sec + tv.tv_usec * 1e-6;
 }
 
-clapi::clapi(){
+clapi::clapi()
+{
 
 }
 
-clapi::clapi(std::string tmp){
+clapi::clapi(std::string tmp)
+{
   filename = tmp;
 }
 
-clapi::~clapi(){
+clapi::~clapi()
+{
 }
 
 
-double* clapi::clauto(int n, ...){
+double *clapi::clauto(int n, ...)
+{
   num_hikisu = n;
   va_list args;
   va_start(args, n);
 
-  for(int t = 0; t<n ; t++){
+  for(int t = 0; t<n ; t++) {
     asize[t] = va_arg(args,int);
     s[t] = va_arg(args, double*);
   }
   va_end(args);
 
-  for(int i = 0;i<num_hikisu-1;i++){
-    if(asize[i] == asize[i+1]){
+  for(int i = 0;i<num_hikisu-1;i++) {
+    if(asize[i] == asize[i+1]) {
       size = asize[0];
       std::cout << "num_hikisu : " << num_hikisu<< std::endl;
     }
-    else if(asize[i] != asize[i+1]){
+    else if(asize[i] != asize[i+1]) {
       std::cout << "入力した配列はすべて同じ大きさにしてください"<< std::endl;
     }
     
@@ -57,7 +62,36 @@ double* clapi::clauto(int n, ...){
 }
 
 
-double* clapi::doOpenCL(){
+/* 段階的リファクタリングのため
+ * doOpenGL()と同じ動作をするように一時的に作成したメソッド
+ * ! あとで削除するため他で使用しないこと
+ */
+double *clapi::doOpenCL_classify()
+{
+  double current_time;
+  current_time = gettimeofday_sec();
+
+
+  // get platforms
+  std::vector<cl::Platform> platforms;
+  cl::Platform::get(&platforms);
+
+  if(platform.size() == 0) {
+    std::cerr << "ERROR: Can NOT find any platform" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+
+  // get devices
+  std::vector<cl::Device> devices;
+  //devices =   
+
+  return 0;
+}
+
+
+double *clapi::doOpenCL()
+{
   double t1, t2, t3, t4, t5, t6;
   t1 = gettimeofday_sec();
 
@@ -77,8 +111,7 @@ double* clapi::doOpenCL(){
   //各プラットフォームからデバイス数を取得
   //すべてのプラットフォームのデバイス数の総和を計算
   cl_uint totaldev = 0;
-  for(int i = 0 ; i< num_platforms; i++)
-  {
+  for(int i = 0 ; i< num_platforms; i++) {
     status = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices[i]);
     totaldev += num_devices[i];
   }
@@ -89,8 +122,7 @@ double* clapi::doOpenCL(){
   //プラットフォームの数だけコンテキスト作成
   cl_uint num;
   cl_context context[num_platforms];
-  for(int i = 0,count=0 ; i< num_platforms; i++)
-  {
+  for(int i = 0,count=0 ; i< num_platforms; i++) {
     status = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, num_devices[i], &device_list[count], &num);
     std::cout << "Platform"<< i <<" num_devices : " << num << std::endl;
 
@@ -102,8 +134,7 @@ double* clapi::doOpenCL(){
 
 
   //総デバイスID表示
-  for(int i = 0; i < totaldev; i++)
-  {
+  for(int i = 0; i < totaldev; i++) {
     std::cout << "device_list[" << i << "] : " << device_list[i] << std::endl;
   }
 
