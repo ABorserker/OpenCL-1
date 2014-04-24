@@ -38,7 +38,7 @@ int main(int argc, char **argv){
 
   cl.doOpenCL_classify();
 
-  output = cl.clauto(2, SIZE*SIZE, input1, SIZE*SIZE, input2);
+  //output = cl.clauto(2, SIZE*SIZE, input1, SIZE*SIZE, input2);
 
   //結果表示
   std::cout << "加算結果" << std::endl;

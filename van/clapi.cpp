@@ -9,9 +9,10 @@
 #ifdef __APPLE__
 #include<OpenCL/opencl.h>
 #else
-#include<CL/cl.h>
+#include<CL/cl.hpp>
 #endif
 
+#include "component/PlatformComponent.h"
 
 double gettimeofday_sec()
 {
@@ -61,20 +62,25 @@ double *clapi::clauto(int n, ...)
   return doOpenCL();
 }
 
-//////////////////////////////
+////////////////////////////////////////////////////////////
 
 /**
  * 段階的リファクタリングのため
  * doOpenCL()と同じ動作をするように一時的に作成したメソッド
  * ! あとで削除するため他で使用しないこと
  */
+typedef std::pair<std::string, double> timelog;
+typedef std::vector< std::pair<std::string, double> > TimeTraceLog;
+
+
 double *clapi::doOpenCL_classify()
 {
-  double current_time;
-  current_time = gettimeofday_sec();
+  TimeTraceLog timetrace;
+  timetrace.push_back(timelog("start", gettimeofday_sec()));
 
 
-  // get platforms
+  ////////// get platforms //
+  std::vector<PlatformComponent> components;
   std::vector<cl::Platform> platforms;
   cl::Platform::get(&platforms);
 
@@ -84,14 +90,28 @@ double *clapi::doOpenCL_classify()
   }
 
 
-  // get devices
-  std::vector<cl::Device> devices;
-  platforms[0].getDevice(CL_DEVICE_TYPE_CPU, &devices);
+  ////////// make component from Platform //
+  for( std::vector<cl::Platform>::iterator it = platforms.begin();
+       it != platforms.end();
+       it++ )
+  {
+    components.push_back(*it);
+  }
+
+
+  ////////// print platform & devices information //
+  for( std::vector<PlatformComponent>::iterator it = components.begin();
+       it != components.end();
+       it++ )
+  {
+    it->printInfo();
+  }
+
 
   return 0;
 }
 
-//////////////////////////////
+////////////////////////////////////////////////////////////
 
 double *clapi::doOpenCL()
 {
