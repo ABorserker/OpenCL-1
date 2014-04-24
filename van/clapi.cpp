@@ -61,9 +61,11 @@ double *clapi::clauto(int n, ...)
   return doOpenCL();
 }
 
+//////////////////////////////
 
-/* 段階的リファクタリングのため
- * doOpenGL()と同じ動作をするように一時的に作成したメソッド
+/**
+ * 段階的リファクタリングのため
+ * doOpenCL()と同じ動作をするように一時的に作成したメソッド
  * ! あとで削除するため他で使用しないこと
  */
 double *clapi::doOpenCL_classify()
@@ -84,11 +86,12 @@ double *clapi::doOpenCL_classify()
 
   // get devices
   std::vector<cl::Device> devices;
-  //devices =   
+  platforms[0].getDevice(CL_DEVICE_TYPE_CPU, &devices);
 
   return 0;
 }
 
+//////////////////////////////
 
 double *clapi::doOpenCL()
 {
