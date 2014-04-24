@@ -18,7 +18,7 @@ class clapi
 {
  public:
     clapi();
-    clapi(string);
+    clapi(std::string);
     ~clapi();
     double* clauto(int , ...);
     int size;

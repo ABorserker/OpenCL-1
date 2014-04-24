@@ -45,7 +45,7 @@ double* clapi::clauto(int n, ...){
   for(int i = 0;i<num_hikisu-1;i++){
     if(asize[i] == asize[i+1]){
       size = asize[0];
-      std::cout << "num_hikisu : " << num_hikisu<<endl;
+      std::cout << "num_hikisu : " << num_hikisu<< std::endl;
     }
     else if(asize[i] != asize[i+1]){
       std::cout << "入力した配列はすべて同じ大きさにしてください"<< std::endl;
@@ -148,22 +148,22 @@ double* clapi::doOpenCL(){
   }
 
 
-string str, new_str="", new_str_last="";
+  std::string str, new_str="", new_str_last="";
 const char *source1, *source_last;
 bool flag=true;
 char tmp[10],charsize[20];
 
 //ソースコード書き換え
-ifstream ifs(filename.c_str());
+ std::ifstream ifs(filename.c_str());
 while(ifs && getline(ifs, str)){
-  if(str.find("for")!=string::npos && flag){
-    if(str.find("SIZE")!=string::npos){
+  if(str.find("for")!= std::string::npos && flag){
+    if(str.find("SIZE")!= std::string::npos){
       sprintf(tmp,"%d",delta);
       str.replace(str.find("SIZE"), 4, tmp);
       flag = false;
     }
   }
-  while(str.find("SIZE")!=string::npos){
+  while(str.find("SIZE")!= std::string::npos){
       sprintf(charsize,"%d", size);
       str.replace(str.find("SIZE"), 4, charsize);
   }
@@ -175,18 +175,18 @@ source1 = new_str.c_str();
  std::cout << new_str << std::endl;
 
 //最後のデバイスのソースコード書き換え
-ifstream ifs_last(filename.c_str());
+ std::ifstream ifs_last(filename.c_str());
 flag = true;
 while(ifs_last && getline(ifs_last, str)){
-  if(str.find("for")!=string::npos && flag){
-    if(str.find("SIZE")!=string::npos){
+  if(str.find("for")!= std::string::npos && flag){
+    if(str.find("SIZE")!= std::string::npos){
       sprintf(tmp,"%d",rest);
       str.replace(str.find("SIZE"), 4, tmp);
       flag = false;
     }
 
   }
-  while(str.find("SIZE")!=string::npos){
+  while(str.find("SIZE")!= std::string::npos){
       sprintf(charsize,"%d", size);
       str.replace(str.find("SIZE"), 4, charsize);
   }
@@ -310,7 +310,7 @@ for(int i =0;i<totaldev;i++){
   cout << "kernel done : "<<status <<endl;
 }*/
 t4 = gettimeofday_sec();
- std::cout.setf(ios::fixed, ios::floatfield);
+ std::cout.setf( std::ios::fixed, std::ios::floatfield);
  std::cout <<"calc time = "<<t4 - t3<<" sec."<< std::endl;
 
 
@@ -334,7 +334,7 @@ for(int i=0;i<totaldev;i++){
   }
 }
 t2 = gettimeofday_sec();
- std::cout.setf(ios::fixed, ios::floatfield);
+ std::cout.setf(std::ios::fixed, std::ios::floatfield);
  std::cout <<"total time = "<<t2 -t1<<" sec."<< std::endl;
 
 
@@ -360,7 +360,7 @@ for(int i=0;i<num_platforms;i++){
   clReleaseContext(context[i]);
 }
 t2 = gettimeofday_sec();
- std::cout.setf(ios::fixed, ios::floatfield);
+ std::cout.setf( std::ios::fixed, std::ios::floatfield);
  std::cout <<"total time = "<<t2 -t1<<" sec."<< std::endl;
 
 return memOut;
