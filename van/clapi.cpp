@@ -23,7 +23,7 @@ clapi::clapi(){
 
 }
 
-clapi::clapi(string tmp){
+clapi::clapi(std::string tmp){
   filename = tmp;
 }
 
