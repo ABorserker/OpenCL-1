@@ -11,7 +11,6 @@
 #include<CL/cl.h>
 #endif
 
-using namespace std;
 
 double gettimeofday_sec()
 {
@@ -31,6 +30,7 @@ clapi::clapi(string tmp){
 clapi::~clapi(){
 }
 
+
 double* clapi::clauto(int n, ...){
   num_hikisu = n;
   va_list args;
@@ -45,16 +45,17 @@ double* clapi::clauto(int n, ...){
   for(int i = 0;i<num_hikisu-1;i++){
     if(asize[i] == asize[i+1]){
       size = asize[0];
-      cout<<"num_hikisu : "<<num_hikisu<<endl;
+      std::cout << "num_hikisu : " << num_hikisu<<endl;
     }
     else if(asize[i] != asize[i+1]){
-      cout << "入力した配列はすべて同じ大きさにしてください"<<endl;
+      std::cout << "入力した配列はすべて同じ大きさにしてください"<< std::endl;
     }
     
   }
 
   return doOpenCL();
 }
+
 
 double* clapi::doOpenCL(){
   double t1, t2, t3, t4, t5, t6;
@@ -68,7 +69,7 @@ double* clapi::doOpenCL(){
   platforms = new cl_platform_id[num_platforms];
   //プラットフォームIDを取得
   status = clGetPlatformIDs(num_platforms, platforms, NULL);
-  cout << "num_platforms : " << num_platforms << endl;
+  std::cout << "num_platforms : " << num_platforms << std::endl;
 
   cl_uint num_devices[num_platforms];
   cl_device_id *device_list;
@@ -91,19 +92,19 @@ double* clapi::doOpenCL(){
   for(int i = 0,count=0 ; i< num_platforms; i++)
   {
     status = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, num_devices[i], &device_list[count], &num);
-    cout << "Platform"<<i<<" num_devices : "<<num <<endl;
+    std::cout << "Platform"<< i <<" num_devices : " << num << std::endl;
 
     cl_context_properties properties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[i], 0};
     context[i] = clCreateContext(properties, num_devices[i], &device_list[count], NULL, NULL, &status);
-    cout << "create context" << i<<" :"<<status<<endl;
+    std::cout << "create context" << i << " :" << status << std::endl;
     count += num;
   }
 
 
   //総デバイスID表示
-  for(int i =0;i<totaldev;i++)
+  for(int i = 0; i < totaldev; i++)
   {
-    cout <<"device_list["<<i<<"] : "<<device_list[i]<<endl;
+    std::cout << "device_list[" << i << "] : " << device_list[i] << std::endl;
   }
 
   //デバイス数だけコマンドキューを作成
@@ -113,7 +114,7 @@ double* clapi::doOpenCL(){
 
       queue[count]= clCreateCommandQueue(context[j], device_list[count], 0, &status);
 
-      cout <<"Command Queue"<<count<<": "<<status <<endl;
+      std::cout << "Command Queue" << count << ": " << status << std::endl;
       count++;
     }
   }
@@ -130,19 +131,19 @@ double* clapi::doOpenCL(){
   int delta = size / totaldev;//device１つあたりの計算する要素数
   int rest = (size % totaldev) + delta;
 
-  cout <<"delta = "<<delta<<", rest = "<<rest<<endl;
+  std::cout << "delta = " << delta << ", rest = " << rest << std::endl;
 
   if(delta == 0){
-    cout << "エラー : 配列サイズ＜デバイス数"<<endl;
+    std::cout << "エラー : 配列サイズ＜デバイス数" << std::endl;
     return false;
   }
 
-  for(int j = 0;j<num_hikisu;j++){
-    for(int i = 0;i<totaldev;i++){
+  for(int j = 0; j < num_hikisu; j++) {
+    for(int i = 0; i < totaldev; i++) {
 
       memIn[j][i] = s[j] + (delta * i);
-      cout<<"s["<<j<<"] address"<<s[j]<<" "<<*s[j]<<endl;
-      cout<<"memIn["<<j<<"]["<<i<<"] address"<<memIn[j][i]<<" "<<*memIn[j][i]<<endl;
+      std::cout << "s[" << j << "] address" << s[j] << " " << *s[j] << std::endl;
+      std::cout << "memIn[" << j << "][" << i << "] address" << memIn[j][i] << " " << *memIn[j][i] << std::endl;
     }
   }
 
@@ -171,7 +172,7 @@ while(ifs && getline(ifs, str)){
   new_str += "\n";
 }
 source1 = new_str.c_str();
-cout<< new_str <<endl;
+ std::cout << new_str << std::endl;
 
 //最後のデバイスのソースコード書き換え
 ifstream ifs_last(filename.c_str());
@@ -194,7 +195,7 @@ while(ifs_last && getline(ifs_last, str)){
 
 }
 source_last = new_str_last.c_str();
-cout<< new_str_last <<endl;
+ std::cout << new_str_last << std::endl;
 
 //build
 cl_program program[num_platforms+1];
@@ -202,27 +203,27 @@ for(int i =0,count = 0; i < num_platforms;i++)
 {
   if(i != num_platforms-1 || rest == delta){
     program[i] = clCreateProgramWithSource(context[i], 1, (const char**)&source1, NULL, &status);
-    cout<< "CreateProgram["<<i<<"] : "<<status<<endl;
+    std::cout << "CreateProgram[" << i << "] : " << status << std::endl;
 
     status = clBuildProgram(program[i], num_devices[i], &device_list[count],NULL,NULL,NULL);
     count += num_devices[i];
 
-    cout << "Program["<<i<<"]Build : "<<status<< endl;
+    std::cout << "Program[" << i << "]Build : " << status << std::endl;
   }
 
   else if(i == num_platforms-1 && rest != delta){
     program[i] = clCreateProgramWithSource(context[i], 1, (const char**)&source1, NULL, &status);
-    cout<< "CreateProgram["<<i<<"] : "<<status<<endl;
+    std::cout << "CreateProgram[" << i << "] : " << status << std::endl;
     status = clBuildProgram(program[i], num_devices[i]-1, &device_list[count],NULL,NULL,NULL);
     count += num_devices[i];
     count--;
-    cout << "Program["<<i<<"]Build : "<<status<< endl;
+    std::cout << "Program[" << i << "]Build : " << status << std::endl;
 
     program[i+1] = clCreateProgramWithSource(context[i], 1, (const char**)&source_last, NULL, &status);
-    cout<< "last CreateProgram["<<i+1<<"] : "<<status<<endl;
+    std::cout << "last CreateProgram[" << i+1 << "] : " << status << std::endl;
     status = clBuildProgram(program[i+1], 1, &device_list[count],NULL,NULL,NULL);
     count += num_devices[i];
-    cout << "last Program["<<i+1<<"]Build : "<<status<< endl;
+    std::cout << "last Program[" << i+1 << "]Build : " << status << std::endl;
   }
 }
 cl_kernel kernel[totaldev];
@@ -231,12 +232,12 @@ for(int i = 0 ; i < num_platforms;i++){
   for(int j = 0;j < num_devices[i];j++){
     if(count3 != totaldev-1 || rest == delta){
       kernel[count3] = clCreateKernel(program[i], "calc", &status);
-      cout << "program["<< i <<"] create Kernel["<<count3<<"] : "<< status<<endl;
+      std::cout << "program[" << i << "] create Kernel[" << count3 << "] : " << status<< std::endl;
       count3++;
     }
     else if(count3 == totaldev-1 && rest != delta){
       kernel[count3] = clCreateKernel(program[i+1], "calc", &status);
-      cout << "program["<< i+1 << "] last create Kernel["<<count3<<"] : "<< status<<endl;
+      std::cout << "program["<< i+1 << "] last create Kernel[" << count3<<"] : " << status << std::endl;
       count3++;
     }
   }
@@ -248,12 +249,12 @@ for(int i =0;i<num_platforms;i++){
   for(int j = 0;j<num_devices[i]*(num_hikisu+1);j++){//各プラットホームでのメモリオブジェクトカウント
     if(count4/(num_hikisu+1) != totaldev-1 || rest == delta){
       mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(double)*delta, NULL, &status);
-      cout<<"if context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
+      std::cout << "if context[" << i << "] " << "create mem[" << count4 << "] : " << status << std::endl;
       count4++;
     }
      else if(count4/(num_hikisu+1) == totaldev-1 && rest != delta){
       mem[count4] = clCreateBuffer(context[i], CL_MEM_READ_WRITE, sizeof(double)*rest, NULL, &status);
-      cout<<"elseif context["<<i<<"] "<<"create mem["<<count4<<"] : "<<status<<endl;
+      std::cout << "elseif context[" << i << "] " << "create mem[" << count4 << "] : " << status << std::endl;
       count4++;
     }
   }
@@ -265,13 +266,13 @@ for(int i = 0;i<totaldev;i++){
   if(i*(num_hikisu+1) != (totaldev-1)*(num_hikisu+1) || rest == delta){
     for(int j =0;j < num_hikisu;j++){
       status = clEnqueueWriteBuffer(queue[i], mem[i*(num_hikisu+1)+j], CL_TRUE, 0, sizeof(double)*delta, memIn[j][i], 0,NULL,NULL);
-      cout << "if commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+j<<"] memIn["<<j<<"]["<<i<<"] status:"<< status <<endl;
+      std::cout << "if commandQueue[" << i << "]<=mem[" << i*(num_hikisu+1)+j << "] memIn[" << j << "][" << i << "] status:" << status << std::endl;
     }
   }
   else if(i*(num_hikisu+1) == (totaldev-1)*(num_hikisu+1) && rest != delta){
     for(int j = 0;j< num_hikisu;j++){
       status = clEnqueueWriteBuffer(queue[i], mem[i*(num_hikisu+1)+j], CL_TRUE, 0, sizeof(double)*rest, memIn[j][i], 0,NULL,NULL);
-      cout << "elseif commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+j<<"] memIn["<<j<<"]["<<i<<"] status : "<< status <<endl; 
+      std::cout << "elseif commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+j<<"] memIn["<<j<<"]["<<i<<"] status : "<< status << std::endl; 
     }
   }
 }
@@ -280,11 +281,11 @@ for(int i = 0;i<totaldev;i++){
 for(int i = 0;i<totaldev;i++){
   if(i*(num_hikisu+1) != (totaldev-1)*(num_hikisu+1) || rest == delta){
     status = clEnqueueWriteBuffer(queue[i], mem[i*(num_hikisu+1)+num_hikisu], CL_TRUE, 0, sizeof(double)*delta, memOut, 0,NULL,NULL);
-    cout << "if commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+num_hikisu<<"] : "<< status <<endl;
+    std::cout << "if commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+num_hikisu<<"] : "<< status << std::endl;
   }
   else if(i*(num_hikisu+1) == (totaldev-1)*(num_hikisu+1) && rest != delta){
     status = clEnqueueWriteBuffer(queue[i], mem[i*(num_hikisu+1)+num_hikisu], CL_TRUE, 0, sizeof(double)*rest, memOut, 0,NULL,NULL);
-    cout << "elseif commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+num_hikisu<<"] : "<< status <<endl; 
+    std::cout << "elseif commandQueue["<<i<<"]<=mem["<<i*(num_hikisu+1)+num_hikisu<<"] : "<< status << std::endl; 
   }
 }
 
@@ -292,7 +293,7 @@ count4=0;
 for(int i = 0;i<totaldev;i++){
   for(int j = 0;j<(num_hikisu+1);j++){
     status = clSetKernelArg(kernel[i], j, sizeof(cl_mem), (void *)&mem[i*(num_hikisu+1)+j]);
-    cout <<"kernel["<<i<<"] mem["<<i*(num_hikisu+1)+j<<"] set : "<<status<<endl;
+    std::cout <<"kernel["<<i<<"] mem["<<i*(num_hikisu+1)+j<<"] set : "<<status<< std::endl;
   }
 }
 
@@ -301,7 +302,7 @@ size_t globalsize[]={1024/totaldev,1024};
 //size_t localsize[]={256};
 for(int i = 0;i<totaldev;i++){
 status= clEnqueueNDRangeKernel(queue[i], kernel[i], 2, NULL,globalsize,NULL,0,NULL,NULL);
-cout<< "kernel done : "<<status<<endl;
+ std::cout << "kernel done : "<<status<< std::endl;
 }
 /*
 for(int i =0;i<totaldev;i++){
@@ -309,8 +310,8 @@ for(int i =0;i<totaldev;i++){
   cout << "kernel done : "<<status <<endl;
 }*/
 t4 = gettimeofday_sec();
-cout.setf(ios::fixed, ios::floatfield);
-cout <<"calc time = "<<t4 - t3<<" sec."<< endl;
+ std::cout.setf(ios::fixed, ios::floatfield);
+ std::cout <<"calc time = "<<t4 - t3<<" sec."<< std::endl;
 
 
 for(int i=0;i<totaldev;i++){
@@ -333,8 +334,8 @@ for(int i=0;i<totaldev;i++){
   }
 }
 t2 = gettimeofday_sec();
-cout.setf(ios::fixed, ios::floatfield);
-cout <<"total time = "<<t2 -t1<<" sec."<< endl;
+ std::cout.setf(ios::fixed, ios::floatfield);
+ std::cout <<"total time = "<<t2 -t1<<" sec."<< std::endl;
 
 
 for(int i=0;i<totaldev;i++){
@@ -359,8 +360,8 @@ for(int i=0;i<num_platforms;i++){
   clReleaseContext(context[i]);
 }
 t2 = gettimeofday_sec();
-cout.setf(ios::fixed, ios::floatfield);
-cout <<"total time = "<<t2 -t1<<" sec."<< endl;
+ std::cout.setf(ios::fixed, ios::floatfield);
+ std::cout <<"total time = "<<t2 -t1<<" sec."<< std::endl;
 
 return memOut;
 }

@@ -14,10 +14,9 @@
 
 #define MAX_SOURCE_SIZE (0x100000)
 
-using namespace std;
-
-class clapi {
-  public:
+class clapi
+{
+ public:
     clapi();
     clapi(string);
     ~clapi();
@@ -26,7 +25,8 @@ class clapi {
     double* doOpenCL();
     //cl_device_id device_list[5];
     double* memOut;
-  private:
+
+ private:
     void builderr();
     //cl_int status;
     //cl_platform_id platforms[2];
@@ -48,7 +48,7 @@ class clapi {
     //cl_kernel kernel;
     //cl_mem memIn[10];
     //cl_mem memOut;
-    string filename;
+    std::string filename;
     double* s[10];
     int asize[10];
     int num_hikisu;
